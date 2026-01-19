@@ -32,7 +32,13 @@ export class Decompiler {
     }
     
     if (template.Description) {
-      lines.push(`Description('${template.Description}')`);
+      const escaped = template.Description
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, "\\'")
+        .replace(/\n/g, '\\n')
+        .replace(/\r/g, '\\r')
+        .replace(/\t/g, '\\t');
+      lines.push(`Description('${escaped}')`);
     }
     
     if (template.Transform) {

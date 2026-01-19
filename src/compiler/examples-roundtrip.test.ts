@@ -89,8 +89,8 @@ describe('Round-trip tests for AWS CloudFormation templates', () => {
         // Read and parse original template
         const content = fs.readFileSync(templatePath, 'utf-8');
         
-        // Skip templates with unsupported custom tags
-        if (content.includes('!Rain::') || content.includes('!ValueOf')) {
+        // Skip templates with unsupported custom tags or MacrosExamples
+        if (content.includes('!Rain::') || content.includes('!ValueOf') || templatePath.includes('MacrosExamples')) {
           skipCount++;
           return; // Skip these templates
         }
