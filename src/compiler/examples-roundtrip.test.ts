@@ -97,8 +97,8 @@ describe('Round-trip tests for AWS CloudFormation templates', () => {
         
         const originalTemplate = jsyaml.load(content, { schema: CFN_SCHEMA });
         
-        // Skip if not a valid CloudFormation template
-        if (!originalTemplate || typeof originalTemplate !== 'object') {
+        // Skip if not a valid CloudFormation template (no Resources section)
+        if (!originalTemplate || typeof originalTemplate !== 'object' || !(originalTemplate as any).Resources) {
           skipCount++;
           return;
         }
