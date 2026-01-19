@@ -163,9 +163,14 @@ export class ResourceNode extends ASTNode {
 
   toCloudFormation(): any {
     const result: any = {
-      Type: this.type,
-      Properties: this.properties.toCloudFormation()
+      Type: this.type
     };
+    
+    const props = this.properties.toCloudFormation();
+    // Only add Properties if not empty
+    if (Object.keys(props).length > 0) {
+      result.Properties = props;
+    }
     
     for (const attr of this.attributes) {
       const [key, value] = attr.toCloudFormation();
