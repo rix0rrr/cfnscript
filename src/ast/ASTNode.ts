@@ -137,13 +137,18 @@ export class FunctionCallNode extends ASTNode {
       return { [`Fn::${this.name}`]: cfArgs };
     }
     
-    // For most functions, if there's only one argument, pass it directly
-    // Otherwise, pass as an array
+    // Functions that always require array form
+    const alwaysArrayFunctions = ['Not', 'And', 'Or', 'Equals', 'Join', 'Split', 'Select', 'FindInMap', 'Cidr'];
+    
     const cfArgs = this.args.map(arg => arg.toCloudFormation());
-    if (cfArgs.length === 1) {
-      return { [`Fn::${this.name}`]: cfArgs[0] };
+    
+    // For functions that always need arrays, or multiple arguments, use array form
+    if (alwaysArrayFunctions.includes(this.name) || cfArgs.length > 1) {
+      return { [`Fn::${this.name}`]: cfArgs };
     }
-    return { [`Fn::${this.name}`]: cfArgs };
+    
+    // For other single-argument functions, pass directly
+    return { [`Fn::${this.name}`]: cfArgs[0] };
   }
 
   toSource(): string {
