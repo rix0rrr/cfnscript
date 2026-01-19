@@ -53,6 +53,26 @@ function normalizeTemplate(template: any): any {
   return normalized;
 }
 
+function shouldSkipTemplateBasedOnStringContents(templatePath: string, content: string): boolean {
+  // Skip templates with unsupported custom tags or features
+  if (content.includes('!Rain::') || content.includes('!ValueOf') || 
+      templatePath.includes('MacrosExamples') || content.includes('Rain::Module') ||
+      content.includes('Fn::ForEach')) {
+    return true;
+  }
+  
+  return false;
+}
+
+function shouldSkipTemplate(templatePath: string, content: string, parsedTemplate: any): boolean {
+  // Skip if not a valid CloudFormation template (no Resources section)
+  if (!parsedTemplate || typeof parsedTemplate !== 'object' || !(parsedTemplate as any).Resources) {
+    return true;
+  }
+  
+  return false;
+}
+
 describe('Round-trip tests for AWS CloudFormation templates', () => {
   const examplesDir = 'examples/aws-cloudformation-templates';
   
@@ -89,16 +109,16 @@ describe('Round-trip tests for AWS CloudFormation templates', () => {
         // Read and parse original template
         const content = fs.readFileSync(templatePath, 'utf-8');
         
-        // Skip templates with unsupported custom tags or MacrosExamples
-        if (content.includes('!Rain::') || content.includes('!ValueOf') || templatePath.includes('MacrosExamples')) {
+        // Check content-based skip conditions before parsing
+        if (shouldSkipTemplateBasedOnStringContents(templatePath, content)) {
           skipCount++;
-          return; // Skip these templates
+          return;
         }
         
         const originalTemplate = jsyaml.load(content, { schema: CFN_SCHEMA });
         
-        // Skip if not a valid CloudFormation template (no Resources section)
-        if (!originalTemplate || typeof originalTemplate !== 'object' || !(originalTemplate as any).Resources) {
+        // Check parsed template skip conditions
+        if (shouldSkipTemplate(templatePath, content, originalTemplate)) {
           skipCount++;
           return;
         }

@@ -80,8 +80,11 @@ export class Decompiler {
         let line = `${name} = Resource('${resource.Type}', ${this.objectToSource(resource.Properties || {})})`;
         
         if (resource.DependsOn) {
-          const deps = Array.isArray(resource.DependsOn) ? resource.DependsOn : [resource.DependsOn];
-          line += ` DependsOn(${deps.map(d => `'${d}'`).join(', ')})`;
+          if (Array.isArray(resource.DependsOn)) {
+            line += ` DependsOn([${resource.DependsOn.map(d => `'${d}'`).join(', ')}])`;
+          } else {
+            line += ` DependsOn('${resource.DependsOn}')`;
+          }
         }
         if (resource.Condition) {
           line += ` Condition(${resource.Condition})`;
