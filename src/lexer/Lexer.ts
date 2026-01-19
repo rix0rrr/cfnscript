@@ -24,7 +24,27 @@ export class Lexer {
 
     // Single character tokens
     switch (this.current) {
-      case '=': return this.advance(), this.makeToken(TokenType.EQUALS, '=', line, column);
+      case '=':
+        this.advance();
+        if (this.current === '=') {
+          this.advance();
+          return this.makeToken(TokenType.DOUBLE_EQUALS, '==', line, column);
+        }
+        return this.makeToken(TokenType.EQUALS, '=', line, column);
+      case '&':
+        this.advance();
+        if (this.current === '&') {
+          this.advance();
+          return this.makeToken(TokenType.DOUBLE_AMPERSAND, '&&', line, column);
+        }
+        return this.makeToken(TokenType.AMPERSAND, '&', line, column);
+      case '|':
+        this.advance();
+        if (this.current === '|') {
+          this.advance();
+          return this.makeToken(TokenType.DOUBLE_PIPE, '||', line, column);
+        }
+        return this.makeToken(TokenType.PIPE, '|', line, column);
       case '(': return this.advance(), this.makeToken(TokenType.LPAREN, '(', line, column);
       case ')': return this.advance(), this.makeToken(TokenType.RPAREN, ')', line, column);
       case '{': return this.advance(), this.makeToken(TokenType.LBRACE, '{', line, column);

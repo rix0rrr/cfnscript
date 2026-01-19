@@ -72,6 +72,56 @@ export class Parser {
   }
 
   private parseExpression(): AST.ASTNode {
+    // Parse || (lowest precedence)
+    return this.parseOrExpression();
+  }
+
+  private parseOrExpression(): AST.ASTNode {
+    let expr = this.parseAndExpression();
+    
+    // Handle || operator
+    if (this.current.type === TokenType.DOUBLE_PIPE) {
+      const conditions = [expr];
+      while (this.current.type === TokenType.DOUBLE_PIPE) {
+        this.advance();
+        conditions.push(this.parseAndExpression());
+      }
+      return new AST.FunctionCallNode('Or', conditions);
+    }
+    
+    return expr;
+  }
+
+  private parseAndExpression(): AST.ASTNode {
+    let expr = this.parseEqualityExpression();
+    
+    // Handle && operator
+    if (this.current.type === TokenType.DOUBLE_AMPERSAND) {
+      const conditions = [expr];
+      while (this.current.type === TokenType.DOUBLE_AMPERSAND) {
+        this.advance();
+        conditions.push(this.parseEqualityExpression());
+      }
+      return new AST.FunctionCallNode('And', conditions);
+    }
+    
+    return expr;
+  }
+
+  private parseEqualityExpression(): AST.ASTNode {
+    let expr = this.parseMemberExpression();
+    
+    // Handle == operator
+    if (this.current.type === TokenType.DOUBLE_EQUALS) {
+      this.advance();
+      const right = this.parseMemberExpression();
+      return new AST.FunctionCallNode('Equals', [expr, right]);
+    }
+    
+    return expr;
+  }
+
+  private parseMemberExpression(): AST.ASTNode {
     let expr = this.parsePrimary();
     
     // Handle member access

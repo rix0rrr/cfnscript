@@ -146,6 +146,21 @@ export class Decompiler {
           const funcName = key.substring(4);
           const args = value[key];
           
+          // Special handling for Equals - output as == operator
+          if (funcName === 'Equals' && Array.isArray(args) && args.length === 2) {
+            return `${this.valueToSource(args[0], 'argument')} == ${this.valueToSource(args[1], 'argument')}`;
+          }
+          
+          // Special handling for And - output as && operator
+          if (funcName === 'And' && Array.isArray(args)) {
+            return args.map((a: any) => this.valueToSource(a, 'argument')).join(' && ');
+          }
+          
+          // Special handling for Or - output as || operator
+          if (funcName === 'Or' && Array.isArray(args)) {
+            return args.map((a: any) => this.valueToSource(a, 'argument')).join(' || ');
+          }
+          
           // Special handling for different intrinsic formats
           if (Array.isArray(args)) {
             // Special case for If - first argument is a condition name (unquoted)
