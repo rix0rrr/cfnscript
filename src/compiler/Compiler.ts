@@ -111,6 +111,9 @@ export class Decompiler {
         if (resource.UpdatePolicy) {
           line += ` UpdatePolicy(${this.objectToSource(resource.UpdatePolicy)})`;
         }
+        if ((resource as any).Version) {
+          line += ` Version('${(resource as any).Version}')`;
+        }
         
         lines.push(line);
       }

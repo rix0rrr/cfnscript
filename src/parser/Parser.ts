@@ -214,7 +214,7 @@ export class Parser {
       while (this.current.type === TokenType.IDENTIFIER) {
         const attrName = this.current.value;
         if (['DependsOn', 'Condition', 'DeletionPolicy', 'UpdateReplacePolicy', 
-             'CreationPolicy', 'UpdatePolicy', 'Metadata'].includes(attrName)) {
+             'CreationPolicy', 'UpdatePolicy', 'Metadata', 'Version'].includes(attrName)) {
           this.advance();
           this.expect(TokenType.LPAREN);
           const attrValue = this.parseExpression();
