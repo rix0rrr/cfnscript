@@ -82,6 +82,9 @@ export class Decompiler {
         if (resource.UpdateReplacePolicy) {
           line += ` UpdateReplacePolicy('${resource.UpdateReplacePolicy}')`;
         }
+        if (resource.Metadata) {
+          line += ` Metadata(${this.objectToSource(resource.Metadata)})`;
+        }
         
         lines.push(line);
       }
@@ -99,8 +102,10 @@ export class Decompiler {
   private objectToSource(obj: Record<string, any>): string {
     const props = Object.entries(obj)
       .map(([key, value]) => {
-        // For object keys, always use the key as-is (no quotes needed in our syntax)
-        return `${key}: ${this.valueToSource(value)}`;
+        // Quote keys that contain special characters
+        const needsQuoting = /[.\-\s:]/.test(key) || !(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key));
+        const quotedKey = needsQuoting ? `'${key.replace(/'/g, "\\'")}'` : key;
+        return `${quotedKey}: ${this.valueToSource(value)}`;
       })
       .join(', ');
     return `{ ${props} }`;
@@ -112,8 +117,14 @@ export class Decompiler {
     }
     
     if (typeof value === 'string') {
-      // Always quote strings - they're either literals or will be wrapped in Ref
-      return `'${value.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
+      // Escape special characters in strings
+      const escaped = value
+        .replace(/\\/g, '\\\\')  // Backslash first
+        .replace(/'/g, "\\'")     // Single quotes
+        .replace(/\n/g, '\\n')    // Newlines
+        .replace(/\r/g, '\\r')    // Carriage returns
+        .replace(/\t/g, '\\t');   // Tabs
+      return `'${escaped}'`;
     }
     
     if (typeof value === 'number' || typeof value === 'boolean') {
@@ -160,6 +171,35 @@ export class Decompiler {
           // Special handling for Or - output as || operator
           if (funcName === 'Or' && Array.isArray(args)) {
             return args.map((a: any) => this.valueToSource(a, 'argument')).join(' || ');
+          }
+          
+          // Special handling for Sub - preserve ${} syntax as-is
+          if (funcName === 'Sub') {
+            if (typeof args === 'string') {
+              // Scalar form - just the template string
+              // Escape special characters but preserve ${}
+              const escaped = args
+                .replace(/\\/g, '\\\\')
+                .replace(/'/g, "\\'")
+                .replace(/\n/g, '\\n')
+                .replace(/\r/g, '\\r')
+                .replace(/\t/g, '\\t');
+              return `${funcName}('${escaped}')`;
+            } else if (Array.isArray(args)) {
+              // Array form - template string and optional variables object
+              const template = typeof args[0] === 'string' ? args[0] : JSON.stringify(args[0]);
+              const escaped = template
+                .replace(/\\/g, '\\\\')
+                .replace(/'/g, "\\'")
+                .replace(/\n/g, '\\n')
+                .replace(/\r/g, '\\r')
+                .replace(/\t/g, '\\t');
+              if (args.length === 1) {
+                return `${funcName}('${escaped}')`;
+              } else {
+                return `${funcName}('${escaped}', ${this.valueToSource(args[1], 'argument')})`;
+              }
+            }
           }
           
           // Special handling for different intrinsic formats

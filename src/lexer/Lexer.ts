@@ -227,7 +227,7 @@ export class Lexer {
   }
 
   private isIdentifierStart(ch: string): boolean {
-    return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch === '_';
+    return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch === '_' || ch === '$';
   }
 
   private isIdentifierPart(ch: string): boolean {

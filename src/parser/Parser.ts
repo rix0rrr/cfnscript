@@ -170,6 +170,11 @@ export class Parser {
       const name = this.current.value;
       this.advance();
       
+      // Handle boolean and null literals
+      if (name === 'true') return new AST.LiteralNode(true);
+      if (name === 'false') return new AST.LiteralNode(false);
+      if (name === 'null') return new AST.LiteralNode(null);
+      
       // Use peek to avoid type narrowing issues
       if ((this.current.type as TokenType) === TokenType.LPAREN) {
         return this.parseFunctionCall(name);
@@ -227,6 +232,10 @@ export class Parser {
       return new AST.MappingNode(args[0] as AST.ObjectNode);
     } else if (name === 'Condition') {
       return new AST.ConditionNode(args[0]);
+    } else if (name === 'Sub') {
+      // Sub is special - just pass through as a regular function call
+      // The string argument is already a LiteralNode
+      return new AST.FunctionCallNode(name, args);
     }
     
     // Regular function call (intrinsic)

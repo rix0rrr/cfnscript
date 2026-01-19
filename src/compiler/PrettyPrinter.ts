@@ -29,9 +29,24 @@ export class PrettyPrinter {
   private formatObjects(text: string, depth: number): string {
     let result = '';
     let i = 0;
+    let inString = false;
+    let stringChar = '';
     
     while (i < text.length) {
-      if (text[i] === '{') {
+      const char = text[i];
+      
+      // Track string boundaries
+      if ((char === '"' || char === "'") && (i === 0 || text[i - 1] !== '\\')) {
+        if (!inString) {
+          inString = true;
+          stringChar = char;
+        } else if (char === stringChar) {
+          inString = false;
+        }
+      }
+      
+      // Only format braces outside of strings
+      if (!inString && char === '{') {
         // Find the matching closing brace
         const objEnd = this.findMatchingBrace(text, i);
         if (objEnd !== -1) {
@@ -41,7 +56,8 @@ export class PrettyPrinter {
           continue;
         }
       }
-      result += text[i];
+      
+      result += char;
       i++;
     }
     
@@ -88,6 +104,12 @@ export class PrettyPrinter {
     if (!content) return '{}';
     
     const properties = this.parseObjectProperties(content);
+    
+    // Check if any property value contains escaped newlines - if so, don't format
+    const hasEscapedNewlines = properties.some(p => p.value.includes('\\n'));
+    if (hasEscapedNewlines) {
+      return obj; // Return as-is to avoid breaking string literals
+    }
     
     // If object is simple, keep it on one line
     const hasComplexValues = properties.some(p => 

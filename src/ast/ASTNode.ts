@@ -4,7 +4,7 @@ export abstract class ASTNode {
 }
 
 export class LiteralNode extends ASTNode {
-  constructor(public value: string | number | boolean) {
+  constructor(public value: string | number | boolean | null) {
     super();
   }
 
@@ -13,6 +13,9 @@ export class LiteralNode extends ASTNode {
   }
 
   toSource(): string {
+    if (this.value === null) {
+      return 'null';
+    }
     if (typeof this.value === 'string') {
       return `"${this.value.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n')}"`;
     }
@@ -110,6 +113,17 @@ export class FunctionCallNode extends ASTNode {
       
       const restArgs = this.args.slice(1).map(arg => arg.toCloudFormation());
       return { [`Fn::${this.name}`]: [conditionName, ...restArgs] };
+    }
+    
+    // Special handling for Sub - preserve string format
+    if (this.name === 'Sub') {
+      const cfArgs = this.args.map(arg => arg.toCloudFormation());
+      // If only one argument (the template string), return as scalar
+      if (cfArgs.length === 1) {
+        return { [`Fn::${this.name}`]: cfArgs[0] };
+      }
+      // Otherwise return as array
+      return { [`Fn::${this.name}`]: cfArgs };
     }
     
     return { [`Fn::${this.name}`]: this.args.map(arg => arg.toCloudFormation()) };
