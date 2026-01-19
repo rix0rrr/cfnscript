@@ -1,0 +1,39 @@
+{
+  "name": "cfnscript",
+  "version": "1.0.0",
+  "description": "Alternative syntax for CloudFormation templates",
+  "main": "dist/index.js",
+  "bin": {
+    "cfnscript": "./dist/cli/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "keywords": [
+    "cloudformation",
+    "aws",
+    "infrastructure"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.0.9",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.6",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "esbuild": "^0.27.2",
+    "get-tsconfig": "^4.13.0",
+    "js-yaml": "^4.1.1",
+    "resolve-pkg-maps": "^1.0.0",
+    "undici-types": "^7.16.0",
+    "yaml": "^2.8.2"
+  }
+}
