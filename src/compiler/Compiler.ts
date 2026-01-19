@@ -1,6 +1,7 @@
 import { Parser } from '../parser/Parser';
 import { CloudFormationTemplate } from './types';
 import * as yaml from 'yaml';
+import { PrettyPrinter } from './PrettyPrinter';
 
 export class Compiler {
   compile(source: string): CloudFormationTemplate {
@@ -21,6 +22,8 @@ export class Compiler {
 }
 
 export class Decompiler {
+  private printer = new PrettyPrinter();
+  
   decompile(template: CloudFormationTemplate): string {
     const lines: string[] = [];
     
@@ -90,7 +93,7 @@ export class Decompiler {
       }
     }
     
-    return lines.join('\n\n');
+    return this.printer.format(lines.join('\n\n'));
   }
 
   private objectToSource(obj: Record<string, any>): string {
