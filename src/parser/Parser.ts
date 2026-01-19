@@ -128,6 +128,12 @@ export class Parser {
     while (this.current.type === TokenType.DOT) {
       this.advance();
       const property = this.expect(TokenType.IDENTIFIER).value;
+      
+      // Special case: AWS.Property becomes Ref('AWS::Property')
+      if (expr instanceof AST.IdentifierNode && expr.name === 'AWS') {
+        return new AST.FunctionCallNode('Ref', [new AST.LiteralNode(`AWS::${property}`)]);
+      }
+      
       expr = new AST.MemberAccessNode(expr, property);
     }
     
@@ -139,14 +145,6 @@ export class Parser {
     if (this.current.type === TokenType.STRING) {
       const value = this.current.value;
       this.advance();
-      
-      // Check if it's an AWS pseudo-parameter (not a resource type)
-      // Pseudo-parameters: AWS::AccountId, AWS::NoValue, AWS::NotificationARNs, AWS::Partition, AWS::Region, AWS::StackId, AWS::StackName, AWS::URLSuffix
-      const pseudoParams = ['AWS::AccountId', 'AWS::NoValue', 'AWS::NotificationARNs', 'AWS::Partition', 'AWS::Region', 'AWS::StackId', 'AWS::StackName', 'AWS::URLSuffix'];
-      if (pseudoParams.includes(value)) {
-        return new AST.FunctionCallNode('Ref', [new AST.LiteralNode(value)]);
-      }
-      
       return new AST.LiteralNode(value);
     }
     

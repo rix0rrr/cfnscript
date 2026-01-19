@@ -127,9 +127,10 @@ export class Decompiler {
     if (typeof value === 'object') {
       // Check for intrinsic functions
       if (value.Ref) {
-        // Check if it's a pseudo-parameter (starts with AWS::) - quote it
+        // Check if it's a pseudo-parameter (starts with AWS::) - convert to AWS.Property
         if (value.Ref.startsWith('AWS::')) {
-          return `'${value.Ref}'`;
+          const property = value.Ref.substring(5); // Remove 'AWS::'
+          return `AWS.${property}`;
         }
         // Regular ref - return as identifier
         return value.Ref;
