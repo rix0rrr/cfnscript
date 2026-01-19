@@ -138,8 +138,8 @@ export class Decompiler {
     const props = Object.entries(obj)
       .map(([key, value]) => {
         // Quote keys that contain special characters
-        const needsQuoting = /[.\-\s:]/.test(key) || !(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key));
-        const quotedKey = needsQuoting ? `'${key.replace(/'/g, "\\'")}'` : key;
+        const needsQuoting = /[.\-\s:\\]/.test(key) || !(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key));
+        const quotedKey = needsQuoting ? `'${key.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'` : key;
         return `${quotedKey}: ${this.valueToSource(value)}`;
       })
       .join(', ');
