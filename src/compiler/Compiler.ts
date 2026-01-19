@@ -173,8 +173,16 @@ export class Decompiler {
       }
       
       if (value['Fn::GetAtt']) {
-        const [resource, attr] = value['Fn::GetAtt'];
-        return `${resource}.${attr}`;
+        const attValue = value['Fn::GetAtt'];
+        if (Array.isArray(attValue)) {
+          if (attValue.length === 2) {
+            // Standard form: [Resource, Attribute]
+            return `${attValue[0]}.${attValue[1]}`;
+          } else {
+            // Array form with 3+ elements: use explicit GetAtt
+            return `GetAtt(${attValue.map((v: any) => `'${v}'`).join(', ')})`;
+          }
+        }
       }
       
       // Handle all other Fn:: intrinsics
