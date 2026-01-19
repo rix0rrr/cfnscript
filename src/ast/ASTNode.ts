@@ -79,9 +79,20 @@ export class MemberAccessNode extends ASTNode {
   }
 
   toCloudFormation(): any {
-    if (this.object instanceof IdentifierNode) {
-      return { 'Fn::GetAtt': [this.object.name, this.property] };
+    // Collect all chained properties
+    let current: ASTNode = this;
+    const properties: string[] = [];
+    
+    while (current instanceof MemberAccessNode) {
+      properties.unshift(current.property);
+      current = current.object;
     }
+    
+    if (current instanceof IdentifierNode) {
+      const attributePath = properties.join('.');
+      return { 'Fn::GetAtt': [current.name, attributePath] };
+    }
+    
     throw new Error('Member access only supported on identifiers');
   }
 
