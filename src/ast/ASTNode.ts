@@ -1,5 +1,13 @@
+export interface CompilationContext {
+  parameters: Set<string>;
+  conditions: Set<string>;
+}
+
 export abstract class ASTNode {
   abstract toCloudFormation(): any;
+  toCloudFormationWithContext(context: CompilationContext): any {
+    return this.toCloudFormation();
+  }
   abstract toSource(): string;
 }
 
@@ -31,6 +39,15 @@ export class IdentifierNode extends ASTNode {
   toCloudFormation(): any {
     return { Ref: this.name };
   }
+  
+  toCloudFormationWithContext(context: CompilationContext): any {
+    // Check if this identifier refers to a condition
+    if (context.conditions.has(this.name)) {
+      return { Condition: this.name };
+    }
+    // Otherwise it's a Ref (parameter, resource, etc.)
+    return { Ref: this.name };
+  }
 
   toSource(): string {
     return this.name;
@@ -46,6 +63,14 @@ export class ObjectNode extends ASTNode {
     const result: Record<string, any> = {};
     for (const [key, value] of this.properties) {
       result[key] = value.toCloudFormation();
+    }
+    return result;
+  }
+  
+  toCloudFormationWithContext(context: CompilationContext): any {
+    const result: Record<string, any> = {};
+    for (const [key, value] of this.properties) {
+      result[key] = value.toCloudFormationWithContext(context);
     }
     return result;
   }
@@ -65,6 +90,10 @@ export class ArrayNode extends ASTNode {
 
   toCloudFormation(): any {
     return this.elements.map(el => el.toCloudFormation());
+  }
+  
+  toCloudFormationWithContext(context: CompilationContext): any {
+    return this.elements.map(el => el.toCloudFormationWithContext(context));
   }
 
   toSource(): string {
@@ -107,8 +136,12 @@ export class FunctionCallNode extends ASTNode {
   }
 
   toCloudFormation(): any {
+    return this.toCloudFormationWithContext({ parameters: new Set(), conditions: new Set() });
+  }
+  
+  toCloudFormationWithContext(context: CompilationContext): any {
     if (this.name === 'Ref') {
-      return { Ref: this.args[0].toCloudFormation() };
+      return { Ref: this.args[0].toCloudFormationWithContext(context) };
     }
     
     // Special handling for If - first argument is a condition name (string, not Ref)
@@ -119,16 +152,16 @@ export class FunctionCallNode extends ASTNode {
       if (firstArg instanceof IdentifierNode) {
         conditionName = firstArg.name;
       } else {
-        conditionName = firstArg.toCloudFormation();
+        conditionName = firstArg.toCloudFormationWithContext(context);
       }
       
-      const restArgs = this.args.slice(1).map(arg => arg.toCloudFormation());
+      const restArgs = this.args.slice(1).map(arg => arg.toCloudFormationWithContext(context));
       return { [`Fn::${this.name}`]: [conditionName, ...restArgs] };
     }
     
     // Special handling for Sub - preserve string format
     if (this.name === 'Sub') {
-      const cfArgs = this.args.map(arg => arg.toCloudFormation());
+      const cfArgs = this.args.map(arg => arg.toCloudFormationWithContext(context));
       // If only one argument (the template string), return as scalar
       if (cfArgs.length === 1) {
         return { [`Fn::${this.name}`]: cfArgs[0] };
@@ -140,7 +173,7 @@ export class FunctionCallNode extends ASTNode {
     // Functions that always require array form
     const alwaysArrayFunctions = ['Not', 'And', 'Or', 'Equals', 'Join', 'Split', 'Select', 'FindInMap', 'Cidr'];
     
-    const cfArgs = this.args.map(arg => arg.toCloudFormation());
+    const cfArgs = this.args.map(arg => arg.toCloudFormationWithContext(context));
     
     // For functions that always need arrays, or multiple arguments, use array form
     if (alwaysArrayFunctions.includes(this.name) || cfArgs.length > 1) {
@@ -280,6 +313,10 @@ export class ConditionNode extends ASTNode {
   toCloudFormation(): any {
     return this.expression.toCloudFormation();
   }
+  
+  toCloudFormationWithContext(context: CompilationContext): any {
+    return this.expression.toCloudFormationWithContext(context);
+  }
 
   toSource(): string {
     return `Condition(${this.expression.toSource()})`;
@@ -381,26 +418,43 @@ export class TemplateNode extends ASTNode {
   toCloudFormation(): any {
     const template: any = { Resources: {} };
     
+    // First pass: collect all parameter and condition names
+    const context = {
+      parameters: new Set<string>(),
+      conditions: new Set<string>()
+    };
+    
+    for (const stmt of this.statements) {
+      if (stmt instanceof AssignmentNode) {
+        if (stmt.value instanceof ParameterNode) {
+          context.parameters.add(stmt.name);
+        } else if (stmt.value instanceof ConditionNode) {
+          context.conditions.add(stmt.name);
+        }
+      }
+    }
+    
+    // Second pass: build template with context
     for (const stmt of this.statements) {
       if (stmt instanceof AssignmentNode) {
         const value = stmt.value;
         if (value instanceof ResourceNode) {
-          template.Resources[stmt.name] = value.toCloudFormation();
+          template.Resources[stmt.name] = value.toCloudFormationWithContext(context);
         } else if (value instanceof ParameterNode) {
           template.Parameters = template.Parameters || {};
-          template.Parameters[stmt.name] = value.toCloudFormation();
+          template.Parameters[stmt.name] = value.toCloudFormationWithContext(context);
         } else if (value instanceof OutputNode) {
           template.Outputs = template.Outputs || {};
-          template.Outputs[stmt.name] = value.toCloudFormation();
+          template.Outputs[stmt.name] = value.toCloudFormationWithContext(context);
         } else if (value instanceof RuleNode) {
           template.Rules = template.Rules || {};
-          template.Rules[stmt.name] = value.toCloudFormation();
+          template.Rules[stmt.name] = value.toCloudFormationWithContext(context);
         } else if (value instanceof MappingNode) {
           template.Mappings = template.Mappings || {};
-          template.Mappings[stmt.name] = value.toCloudFormation();
+          template.Mappings[stmt.name] = value.toCloudFormationWithContext(context);
         } else if (value instanceof ConditionNode) {
           template.Conditions = template.Conditions || {};
-          template.Conditions[stmt.name] = value.toCloudFormation();
+          template.Conditions[stmt.name] = value.toCloudFormationWithContext(context);
         }
       } else if (stmt instanceof DescriptionNode) {
         template.Description = stmt.toCloudFormation();

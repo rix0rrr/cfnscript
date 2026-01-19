@@ -201,6 +201,16 @@ export class Lexer {
       this.advance();
     }
 
+    // Check if this is actually an identifier starting with a number
+    if (this.isIdentifierStart(this.current)) {
+      // It's an identifier like "2RouteTableCondition"
+      while (this.isIdentifierPart(this.current)) {
+        value += this.current;
+        this.advance();
+      }
+      return this.makeToken(TokenType.IDENTIFIER, value, line, column);
+    }
+
     if (this.current === '.') {
       value += this.current;
       this.advance();
