@@ -87,7 +87,7 @@ Environment = Parameter({
   Default: "dev"
 })
 
-IsProd = Condition(Equals(Environment, "production"))
+IsProd = Condition(Environment == "production")
 
 MyBucket = Resource("AWS::S3::Bucket", {
   BucketName: Join("-", ["my-bucket", Environment])
