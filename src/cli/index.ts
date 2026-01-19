@@ -5,7 +5,7 @@ import * as jsyaml from 'js-yaml';
 import { Compiler, Decompiler } from '../compiler/Compiler';
 
 // CloudFormation schema for js-yaml
-const CFN_SCHEMA = jsyaml.DEFAULT_SCHEMA.extend([
+const CFN_SCHEMA = jsyaml.JSON_SCHEMA.extend([
   new jsyaml.Type('!Ref', { kind: 'scalar', construct: (data) => ({ Ref: data }) }),
   new jsyaml.Type('!GetAtt', { kind: 'scalar', construct: (data) => ({ 'Fn::GetAtt': data.split('.') }) }),
   new jsyaml.Type('!GetAtt', { kind: 'sequence', construct: (data) => ({ 'Fn::GetAtt': data }) }),
