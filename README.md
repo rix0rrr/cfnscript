@@ -12,43 +12,19 @@ syntax.
 
 ## Usage
 
-### Compile cfnscript to CloudFormation
-
 ```bash
-# Compile to YAML (default)
-node dist/cli/index.js compile template.cfn output.yaml
+# Compile cfnscript YAML on stdout
+$ npx tsx src/cli/index.ts compile template.cfn
 
-# Compile to JSON
-node dist/cli/index.js compile template.cfn output.json
-
-# Compile to stdout (YAML)
-node dist/cli/index.js compile template.cfn
-
-# Compile to stdout (JSON)
-node dist/cli/index.js compile template.cfn --json
-
-# Compile from stdin
-cat template.cfn | node dist/cli/index.js compile
-```
-
-### Decompile CloudFormation to cfnscript
-
-```bash
-# Decompile from file
-node dist/cli/index.js decompile template.yaml output.cfn
-
-# Decompile to stdout
-node dist/cli/index.js decompile template.yaml
-
-# Decompile from stdin
-cat template.yaml | node dist/cli/index.js decompile
+# Decompile a template to cfnscript on stdout
+$ npx tsx src/cli/index.ts decompile template.yaml
 ```
 
 ## Syntax Examples
 
 ### Basic Resource
 
-```cfnscript
+```js
 MyBucket = Resource("AWS::S3::Bucket", {
   BucketName: "my-bucket",
   WebsiteConfiguration: {
@@ -59,7 +35,7 @@ MyBucket = Resource("AWS::S3::Bucket", {
 
 ### Resource with Attributes
 
-```cfnscript
+```js
 MyBucket = Resource("AWS::S3::Bucket", {
   BucketName: "my-bucket"
 }) DependsOn(OtherResource) Condition(IsProd) DeletionPolicy("Retain")
@@ -67,7 +43,7 @@ MyBucket = Resource("AWS::S3::Bucket", {
 
 ### Parameters
 
-```cfnscript
+```js
 Environment = Parameter({
   Type: "String",
   Default: "dev",
@@ -77,7 +53,7 @@ Environment = Parameter({
 
 ### Outputs
 
-```cfnscript
+```js
 BucketArn = Output({
   Value: MyBucket.Arn,
   Description: "ARN of the S3 bucket",
@@ -87,7 +63,7 @@ BucketArn = Output({
 
 ### Intrinsic Functions
 
-```cfnscript
+```js
 # Implicit Ref (just use the variable name)
 Bucket: MyBucket
 
@@ -102,7 +78,7 @@ Value: If(IsProd, "prod-value", "dev-value")
 
 ### Complete Template
 
-```cfnscript
+```js
 AWSTemplateFormatVersion("2010-09-09")
 Description("My CloudFormation template")
 
@@ -123,21 +99,11 @@ BucketArn = Output({
 })
 ```
 
-## Features
-
-- **Bidirectional Translation**: Convert between cfnscript and CloudFormation JSON/YAML
-- **All CloudFormation Sections**: Parameters, Mappings, Conditions, Resources, Outputs, Metadata, Transform
-- **All Intrinsic Functions**: Ref, GetAtt, Join, Split, Sub, Select, If, And, Or, Not, Equals, etc.
-- **Implicit References**: Variables automatically translate to `Ref`, dot notation to `Fn::GetAtt`
-- **Chainable Resource Attributes**: DependsOn, Condition, DeletionPolicy, etc.
-- **Comments**: Both `#` and `//` line comments supported
-- **Error Reporting**: Syntax errors with line numbers
-
 ## Language Reference
 
 ### Comments
 
-```cfnscript
+```
 # This is a comment
 // This is also a comment
 ```
