@@ -1,7 +1,7 @@
 import { Compiler, Decompiler } from '../compiler/Compiler';
 
 describe('Resource with empty or missing Properties', () => {
-  it('should not preserve empty Properties object (cannot distinguish from missing)', () => {
+  it('should preserve empty Properties object', () => {
     const original = {
       Resources: {
         MyTopic: {
@@ -19,9 +19,10 @@ describe('Resource with empty or missing Properties', () => {
     const compiler = new Compiler();
     const recompiled = compiler.compile(cfnscript);
 
-    // Empty Properties is not preserved (same as missing Properties)
+    // Empty Properties should be preserved
     expect(recompiled.Resources.MyTopic).toEqual({
-      Type: 'AWS::SNS::Topic'
+      Type: 'AWS::SNS::Topic',
+      Properties: {}
     });
   });
 
@@ -37,12 +38,13 @@ describe('Resource with empty or missing Properties', () => {
     const decompiler = new Decompiler();
     const cfnscript = decompiler.decompile(original);
 
-    expect(cfnscript).toContain('MyTopic = Resource(\'AWS::SNS::Topic\', {})');
+    // Missing Properties should decompile without second argument
+    expect(cfnscript).toContain('MyTopic = Resource(\'AWS::SNS::Topic\')');
 
     const compiler = new Compiler();
     const recompiled = compiler.compile(cfnscript);
 
-    // When Properties is missing, we output empty object which should not add Properties
+    // Missing Properties should not add Properties
     expect(recompiled.Resources.MyTopic).toEqual({
       Type: 'AWS::SNS::Topic'
     });

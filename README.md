@@ -1,17 +1,14 @@
 # cfnscript
 
-An alternative syntax for CloudFormation templates using traditional programming language constructs. cfnscript provides a 1:1 bidirectional mapping between CloudFormation JSON/YAML and a more readable, JavaScript-inspired syntax.
+An alternative syntax for CloudFormation templates using traditional programming language constructs.
 
 ## Purpose
 
-cfnscript is a teaching tool that demonstrates CloudFormation's JSON/YAML syntax is entirely incidental. It helps learners who find traditional programming language syntax easier to read and reason about.
+cfnscript is a teaching tool to highlight the programming language that's hidden underneath
+the JSON-encoded structure of a CloudFormation template.
 
-## Installation
-
-```bash
-npm install
-npm run build
-```
+It provides a 1:1 bidirectional mapping between CloudFormation template syntax and a more readable, JavaScript-inspired
+syntax.
 
 ## Usage
 
@@ -188,44 +185,6 @@ All CloudFormation intrinsic functions are supported as function calls:
 - `Cidr(ipBlock, count, cidrBits)`
 - `ToJsonString(object)`
 - `Length(array)`
-
-## Development
-
-```bash
-# Run tests
-npm test
-
-# Build
-npm run build
-
-# Watch mode for tests
-npm run test:watch
-```
-
-## Architecture
-
-- **Lexer**: Tokenizes cfnscript source code
-- **Parser**: Builds Abstract Syntax Tree (AST) from tokens
-- **AST**: Bidirectional transformation between cfnscript and CloudFormation
-- **Compiler**: Orchestrates compilation to JSON/YAML
-- **Decompiler**: Converts CloudFormation back to cfnscript
-- **CLI**: Command-line interface for compile/decompile operations
-
-## Extensibility
-
-### Adding New Intrinsic Functions
-
-Intrinsic functions are automatically supported. No code changes needed.
-
-### Adding New Template Sections
-
-1. Create AST node class extending `ASTNode`
-2. Implement `toCloudFormation()` and `toSource()` methods
-3. Add handling in Parser and Decompiler
-
-### Adding New Resource Attributes
-
-Resource attributes are handled uniformly. Just use them in your templates.
 
 ## License
 

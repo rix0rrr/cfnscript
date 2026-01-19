@@ -207,8 +207,8 @@ export class Parser {
     // Handle special section constructors
     if (name === 'Resource') {
       const type = args[0].toCloudFormation();
-      const properties = args[1] as AST.ObjectNode;
-      const resource = new AST.ResourceNode(type, properties);
+      const properties = args.length > 1 ? (args[1] as AST.ObjectNode) : new AST.ObjectNode(new Map());
+      const resource = new AST.ResourceNode(type, properties, args.length > 1);
       
       // Parse chained attributes
       while (this.current.type === TokenType.IDENTIFIER) {

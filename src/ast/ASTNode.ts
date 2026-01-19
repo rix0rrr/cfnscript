@@ -161,6 +161,7 @@ export class ResourceNode extends ASTNode {
   constructor(
     public type: string,
     public properties: ObjectNode,
+    public hasExplicitProperties: boolean = true,
     public attributes: ResourceAttributeNode[] = []
   ) {
     super();
@@ -171,10 +172,9 @@ export class ResourceNode extends ASTNode {
       Type: this.type
     };
     
-    const props = this.properties.toCloudFormation();
-    // Only add Properties if not empty
-    if (Object.keys(props).length > 0) {
-      result.Properties = props;
+    // Only add Properties if it was explicitly provided
+    if (this.hasExplicitProperties) {
+      result.Properties = this.properties.toCloudFormation();
     }
     
     for (const attr of this.attributes) {

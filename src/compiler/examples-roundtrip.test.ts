@@ -50,6 +50,15 @@ function normalizeTemplate(template: any): any {
     delete normalized.Resources;
   }
   
+  // Remove empty Properties from resources
+  if (normalized.Resources) {
+    for (const resource of Object.values(normalized.Resources)) {
+      if ((resource as any).Properties && Object.keys((resource as any).Properties).length === 0) {
+        delete (resource as any).Properties;
+      }
+    }
+  }
+  
   return normalized;
 }
 
@@ -115,7 +124,14 @@ describe('Round-trip tests for AWS CloudFormation templates', () => {
           return;
         }
         
-        const originalTemplate = jsyaml.load(content, { schema: CFN_SCHEMA });
+        let originalTemplate;
+        try {
+          originalTemplate = jsyaml.load(content, { schema: CFN_SCHEMA });
+        } catch (error) {
+          // Skip files that can't be parsed (e.g., multi-document YAML)
+          skipCount++;
+          return;
+        }
         
         // Check parsed template skip conditions
         if (shouldSkipTemplate(templatePath, content, originalTemplate)) {

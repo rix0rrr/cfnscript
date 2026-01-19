@@ -77,7 +77,14 @@ export class Decompiler {
     
     if (template.Resources) {
       for (const [name, resource] of Object.entries(template.Resources)) {
-        let line = `${name} = Resource('${resource.Type}', ${this.objectToSource(resource.Properties || {})})`;
+        let line: string;
+        if (resource.Properties === undefined) {
+          // No Properties key - omit second argument
+          line = `${name} = Resource('${resource.Type}')`;
+        } else {
+          // Properties key exists (even if empty) - include second argument
+          line = `${name} = Resource('${resource.Type}', ${this.objectToSource(resource.Properties)})`;
+        }
         
         if (resource.DependsOn) {
           if (Array.isArray(resource.DependsOn)) {
