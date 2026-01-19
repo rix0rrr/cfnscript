@@ -126,7 +126,13 @@ export class FunctionCallNode extends ASTNode {
       return { [`Fn::${this.name}`]: cfArgs };
     }
     
-    return { [`Fn::${this.name}`]: this.args.map(arg => arg.toCloudFormation()) };
+    // For most functions, if there's only one argument, pass it directly
+    // Otherwise, pass as an array
+    const cfArgs = this.args.map(arg => arg.toCloudFormation());
+    if (cfArgs.length === 1) {
+      return { [`Fn::${this.name}`]: cfArgs[0] };
+    }
+    return { [`Fn::${this.name}`]: cfArgs };
   }
 
   toSource(): string {
@@ -214,6 +220,20 @@ export class OutputNode extends ASTNode {
 
   toSource(): string {
     return `Output(${this.properties.toSource()})`;
+  }
+}
+
+export class RuleNode extends ASTNode {
+  constructor(public properties: ObjectNode) {
+    super();
+  }
+
+  toCloudFormation(): any {
+    return this.properties.toCloudFormation();
+  }
+
+  toSource(): string {
+    return `Rule(${this.properties.toSource()})`;
   }
 }
 
@@ -337,6 +357,9 @@ export class TemplateNode extends ASTNode {
         } else if (value instanceof OutputNode) {
           template.Outputs = template.Outputs || {};
           template.Outputs[stmt.name] = value.toCloudFormation();
+        } else if (value instanceof RuleNode) {
+          template.Rules = template.Rules || {};
+          template.Rules[stmt.name] = value.toCloudFormation();
         } else if (value instanceof MappingNode) {
           template.Mappings = template.Mappings || {};
           template.Mappings[stmt.name] = value.toCloudFormation();

@@ -85,6 +85,12 @@ export class Decompiler {
         if (resource.Metadata) {
           line += ` Metadata(${this.objectToSource(resource.Metadata)})`;
         }
+        if (resource.CreationPolicy) {
+          line += ` CreationPolicy(${this.objectToSource(resource.CreationPolicy)})`;
+        }
+        if (resource.UpdatePolicy) {
+          line += ` UpdatePolicy(${this.objectToSource(resource.UpdatePolicy)})`;
+        }
         
         lines.push(line);
       }
@@ -93,6 +99,12 @@ export class Decompiler {
     if (template.Outputs) {
       for (const [name, output] of Object.entries(template.Outputs)) {
         lines.push(`${name} = Output(${this.objectToSource(output)})`);
+      }
+    }
+    
+    if (template.Rules) {
+      for (const [name, rule] of Object.entries(template.Rules)) {
+        lines.push(`${name} = Rule(${this.objectToSource(rule)})`);
       }
     }
     

@@ -232,6 +232,8 @@ export class Parser {
       return new AST.MappingNode(args[0] as AST.ObjectNode);
     } else if (name === 'Condition') {
       return new AST.ConditionNode(args[0]);
+    } else if (name === 'Rule') {
+      return new AST.RuleNode(args[0] as AST.ObjectNode);
     } else if (name === 'Sub') {
       // Sub is special - just pass through as a regular function call
       // The string argument is already a LiteralNode

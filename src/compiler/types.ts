@@ -8,6 +8,7 @@ export interface CloudFormationTemplate {
   Transform?: string | string[];
   Resources: Record<string, ResourceDefinition>;
   Outputs?: Record<string, OutputDefinition>;
+  Rules?: Record<string, any>;
 }
 
 export interface ResourceDefinition {

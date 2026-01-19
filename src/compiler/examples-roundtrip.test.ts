@@ -20,10 +20,14 @@ const CFN_SCHEMA = jsyaml.DEFAULT_SCHEMA.extend([
   new jsyaml.Type('!Not', { kind: 'sequence', construct: (data) => ({ 'Fn::Not': data }) }),
   new jsyaml.Type('!FindInMap', { kind: 'sequence', construct: (data) => ({ 'Fn::FindInMap': data }) }),
   new jsyaml.Type('!Base64', { kind: 'scalar', construct: (data) => ({ 'Fn::Base64': data }) }),
+  new jsyaml.Type('!Base64', { kind: 'mapping', construct: (data) => ({ 'Fn::Base64': data }) }),
   new jsyaml.Type('!Cidr', { kind: 'sequence', construct: (data) => ({ 'Fn::Cidr': data }) }),
   new jsyaml.Type('!GetAZs', { kind: 'scalar', construct: (data) => ({ 'Fn::GetAZs': data }) }),
   new jsyaml.Type('!GetAZs', { kind: 'sequence', construct: (data) => ({ 'Fn::GetAZs': data.length > 0 ? data[0] : '' }) }),
+  new jsyaml.Type('!GetAZs', { kind: 'mapping', construct: (data) => ({ 'Fn::GetAZs': data }) }),
   new jsyaml.Type('!ImportValue', { kind: 'scalar', construct: (data) => ({ 'Fn::ImportValue': data }) }),
+  new jsyaml.Type('!ImportValue', { kind: 'mapping', construct: (data) => ({ 'Fn::ImportValue': data }) }),
+  new jsyaml.Type('!Condition', { kind: 'scalar', construct: (data) => ({ Condition: data }) }),
 ]);
 
 function normalizeTemplate(template: any): any {
