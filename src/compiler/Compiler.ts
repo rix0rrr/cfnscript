@@ -28,18 +28,18 @@ export class Decompiler {
     const lines: string[] = [];
     
     if (template.AWSTemplateFormatVersion) {
-      lines.push(`AWSTemplateFormatVersion("${template.AWSTemplateFormatVersion}")`);
+      lines.push(`AWSTemplateFormatVersion('${template.AWSTemplateFormatVersion}')`);
     }
     
     if (template.Description) {
-      lines.push(`Description("${template.Description}")`);
+      lines.push(`Description('${template.Description}')`);
     }
     
     if (template.Transform) {
       if (Array.isArray(template.Transform)) {
-        lines.push(`Transform([${template.Transform.map(t => `"${t}"`).join(', ')}])`);
+        lines.push(`Transform([${template.Transform.map(t => `'${t}'`).join(', ')}])`);
       } else {
-        lines.push(`Transform("${template.Transform}")`);
+        lines.push(`Transform('${template.Transform}')`);
       }
     }
     
@@ -67,20 +67,20 @@ export class Decompiler {
     
     if (template.Resources) {
       for (const [name, resource] of Object.entries(template.Resources)) {
-        let line = `${name} = Resource("${resource.Type}", ${this.objectToSource(resource.Properties || {})})`;
+        let line = `${name} = Resource('${resource.Type}', ${this.objectToSource(resource.Properties || {})})`;
         
         if (resource.DependsOn) {
           const deps = Array.isArray(resource.DependsOn) ? resource.DependsOn : [resource.DependsOn];
-          line += ` DependsOn(${deps.map(d => `"${d}"`).join(', ')})`;
+          line += ` DependsOn(${deps.map(d => `'${d}'`).join(', ')})`;
         }
         if (resource.Condition) {
           line += ` Condition(${resource.Condition})`;
         }
         if (resource.DeletionPolicy) {
-          line += ` DeletionPolicy("${resource.DeletionPolicy}")`;
+          line += ` DeletionPolicy('${resource.DeletionPolicy}')`;
         }
         if (resource.UpdateReplacePolicy) {
-          line += ` UpdateReplacePolicy("${resource.UpdateReplacePolicy}")`;
+          line += ` UpdateReplacePolicy('${resource.UpdateReplacePolicy}')`;
         }
         
         lines.push(line);
@@ -113,7 +113,7 @@ export class Decompiler {
     
     if (typeof value === 'string') {
       // Always quote strings - they're either literals or will be wrapped in Ref
-      return `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+      return `'${value.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
     }
     
     if (typeof value === 'number' || typeof value === 'boolean') {
@@ -129,7 +129,7 @@ export class Decompiler {
       if (value.Ref) {
         // Check if it's a pseudo-parameter (starts with AWS::) - quote it
         if (value.Ref.startsWith('AWS::')) {
-          return `"${value.Ref}"`;
+          return `'${value.Ref}'`;
         }
         // Regular ref - return as identifier
         return value.Ref;
