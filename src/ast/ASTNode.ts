@@ -41,11 +41,15 @@ export class IdentifierNode extends ASTNode {
   }
   
   toCloudFormationWithContext(context: CompilationContext): any {
+    // Check if this identifier refers to a parameter (takes precedence)
+    if (context.parameters.has(this.name)) {
+      return { Ref: this.name };
+    }
     // Check if this identifier refers to a condition
     if (context.conditions.has(this.name)) {
       return { Condition: this.name };
     }
-    // Otherwise it's a Ref (parameter, resource, etc.)
+    // Otherwise it's a Ref (resource, etc.)
     return { Ref: this.name };
   }
 
