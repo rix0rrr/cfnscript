@@ -338,6 +338,20 @@ export class MetadataNode extends ASTNode {
   }
 }
 
+export class GlobalsNode extends ASTNode {
+  constructor(public value: ObjectNode) {
+    super();
+  }
+
+  toCloudFormation(): any {
+    return this.value.toCloudFormation();
+  }
+
+  toSource(): string {
+    return `Globals(${this.value.toSource()})`;
+  }
+}
+
 export class TemplateNode extends ASTNode {
   constructor(public statements: ASTNode[]) {
     super();
@@ -375,6 +389,8 @@ export class TemplateNode extends ASTNode {
         template.Transform = stmt.toCloudFormation();
       } else if (stmt instanceof MetadataNode) {
         template.Metadata = stmt.toCloudFormation();
+      } else if (stmt instanceof GlobalsNode) {
+        template.Globals = stmt.toCloudFormation();
       }
     }
     

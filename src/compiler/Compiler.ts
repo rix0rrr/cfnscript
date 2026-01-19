@@ -47,6 +47,10 @@ export class Decompiler {
       lines.push(`Metadata(${this.objectToSource(template.Metadata)})`);
     }
     
+    if (template.Globals) {
+      lines.push(`Globals(${this.objectToSource(template.Globals)})`);
+    }
+    
     if (template.Parameters) {
       for (const [name, param] of Object.entries(template.Parameters)) {
         lines.push(`${name} = Parameter(${this.objectToSource(param)})`);

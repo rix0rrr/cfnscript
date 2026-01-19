@@ -2,6 +2,7 @@ export interface CloudFormationTemplate {
   AWSTemplateFormatVersion?: string;
   Description?: string;
   Metadata?: Record<string, any>;
+  Globals?: Record<string, any>;
   Parameters?: Record<string, ParameterDefinition>;
   Mappings?: Record<string, Mapping>;
   Conditions?: Record<string, any>;

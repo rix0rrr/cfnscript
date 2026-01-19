@@ -28,7 +28,7 @@ export class Parser {
       
       // Check if it's a section declaration (no assignment)
       if (name === 'Description' || name === 'AWSTemplateFormatVersion' || 
-          name === 'Transform' || name === 'Metadata') {
+          name === 'Transform' || name === 'Metadata' || name === 'Globals') {
         return this.parseSectionDeclaration(name);
       }
       
@@ -54,10 +54,12 @@ export class Parser {
       this.expect(TokenType.RPAREN);
       const cfValue = value.toCloudFormation();
       return new AST.TransformNode(cfValue);
-    } else if (name === 'Metadata') {
+    } else if (name === 'Metadata' || name === 'Globals') {
       const value = this.parseExpression() as AST.ObjectNode;
       this.expect(TokenType.RPAREN);
-      return new AST.MetadataNode(value);
+      return name === 'Metadata' 
+        ? new AST.MetadataNode(value)
+        : new AST.GlobalsNode(value);
     }
     
     throw new Error(`Unknown section: ${name}`);
