@@ -72,7 +72,7 @@ Value: MyBucket.Arn
 
 # Operators for conditions
 IsProd = Condition Environment == "production"
-IsNotProd = Condition !(Environment == "production")
+IsNotProd = Condition Environment != "production"
 IsDevOrTest = Condition Environment == "dev" || Environment == "test"
 IsUSProd = Condition Region == "us-east-1" && Environment == "production"
 
@@ -159,6 +159,7 @@ All CloudFormation intrinsic functions are supported:
 For conditions, use operators instead of function calls:
 - `!condition` compiles to `Fn::Not`
 - `value1 == value2` compiles to `Fn::Equals`
+- `value1 != value2` compiles to `Fn::Not` with `Fn::Equals` (syntactic sugar for `!(value1 == value2)`)
 - `condition1 && condition2` compiles to `Fn::And`
 - `condition1 || condition2` compiles to `Fn::Or`
 

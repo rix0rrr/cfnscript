@@ -127,6 +127,14 @@ export class Parser {
       return new AST.FunctionCallNode('Equals', [expr, right]);
     }
     
+    // Handle != operator (syntactic sugar for !(A == B))
+    if (this.current.type === TokenType.EXCLAMATION_EQUALS) {
+      this.advance();
+      const right = this.parseUnaryExpression();
+      const equals = new AST.FunctionCallNode('Equals', [expr, right]);
+      return new AST.FunctionCallNode('Not', [equals]);
+    }
+    
     return expr;
   }
 

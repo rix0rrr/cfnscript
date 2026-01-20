@@ -229,7 +229,15 @@ export class Decompiler {
           
           // Special handling for Not - output as ! operator
           if (funcName === 'Not' && Array.isArray(args) && args.length === 1) {
-            const operand = this.valueToSource(args[0], 'argument');
+            const arg = args[0];
+            // Check if it's Not(Equals(...)) - emit as !=
+            if (arg && typeof arg === 'object' && arg['Fn::Equals'] && Array.isArray(arg['Fn::Equals']) && arg['Fn::Equals'].length === 2) {
+              const left = this.valueToSource(arg['Fn::Equals'][0], 'argument');
+              const right = this.valueToSource(arg['Fn::Equals'][1], 'argument');
+              return `${left} != ${right}`;
+            }
+            
+            const operand = this.valueToSource(arg, 'argument');
             // Add parentheses if operand contains operators
             if (operand.includes('==') || operand.includes('&&') || operand.includes('||')) {
               return `!(${operand})`;

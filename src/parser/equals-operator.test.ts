@@ -49,4 +49,43 @@ IsEqual = Condition MyResource.Arn == "test"
       ]
     });
   });
+
+  it('should compile != operator to Not(Equals)', () => {
+    const source = `
+IsNotProd = Condition Environment != "production"
+    `.trim();
+    
+    const compiler = new Compiler();
+    const result = compiler.compile(source);
+    
+    expect(result.Conditions!.IsNotProd).toEqual({
+      'Fn::Not': [{
+        'Fn::Equals': [
+          { Ref: 'Environment' },
+          'production'
+        ]
+      }]
+    });
+  });
+
+  it('should decompile Not(Equals) as != operator', () => {
+    const template = {
+      Conditions: {
+        IsNotProd: {
+          'Fn::Not': [{
+            'Fn::Equals': [
+              { Ref: 'Environment' },
+              'production'
+            ]
+          }]
+        }
+      }
+    };
+    
+    const { Decompiler } = require('../compiler/Compiler');
+    const decompiler = new Decompiler();
+    const cfnscript = decompiler.decompile(template);
+    
+    expect(cfnscript).toContain('Environment != \'production\'');
+  });
 });
