@@ -64,19 +64,19 @@ BucketArn = Output {
 ### Intrinsic Functions
 
 ```js
-# Implicit Ref (just use the variable name)
+// Implicit Ref (just use the variable name)
 Bucket: MyBucket
 
-# Implicit GetAtt (dot notation)
+// Implicit GetAtt (dot notation)
 Value: MyBucket.Arn
 
-# Operators for conditions
+// Operators for conditions
 IsProd = Condition Environment == "production"
 IsNotProd = Condition Environment != "production"
 IsDevOrTest = Condition Environment == "dev" || Environment == "test"
 IsUSProd = Condition Region == "us-east-1" && Environment == "production"
 
-# Explicit function calls
+// Explicit function calls
 Value: Join(",", ["a", "b", "c"])
 Value: Sub("Hello ${Name}", { Name: MyParam })
 Value: If(IsProd, "prod-value", "dev-value")
