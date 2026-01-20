@@ -3,6 +3,8 @@ import { Compiler } from '../compiler/Compiler';
 describe('Or operator', () => {
   it('should compile || operator to Fn::Or', () => {
     const source = `
+IsDev = Parameter { Type: "String" }
+IsTest = Parameter { Type: "String" }
 IsValid = Condition IsDev || IsTest
     `.trim();
     
@@ -20,6 +22,9 @@ IsValid = Condition IsDev || IsTest
 
   it('should handle || with multiple conditions', () => {
     const source = `
+IsDev = Parameter { Type: "String" }
+IsTest = Parameter { Type: "String" }
+IsProd = Parameter { Type: "String" }
 IsAnyEnv = Condition IsDev || IsTest || IsProd
     `.trim();
     
@@ -37,6 +42,10 @@ IsAnyEnv = Condition IsDev || IsTest || IsProd
 
   it('should handle mixed && and || with correct precedence', () => {
     const source = `
+IsDev = Parameter { Type: "String" }
+IsUS = Parameter { Type: "String" }
+IsProd = Parameter { Type: "String" }
+IsEU = Parameter { Type: "String" }
 Complex = Condition IsDev && IsUS || IsProd && IsEU
     `.trim();
     
@@ -65,6 +74,10 @@ Complex = Condition IsDev && IsUS || IsProd && IsEU
 
   it('should handle parentheses for grouping', () => {
     const source = `
+A = Parameter { Type: "String" }
+B = Parameter { Type: "String" }
+C = Parameter { Type: "String" }
+D = Parameter { Type: "String" }
 IsValid = Condition A || B || (C || D)
     `.trim();
     

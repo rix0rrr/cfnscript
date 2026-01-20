@@ -3,6 +3,7 @@ import { Compiler } from '../compiler/Compiler';
 describe('Functions that always require array form', () => {
   it('should use array form for Not even with single argument', () => {
     const cfnscript = `
+MyParam = Parameter { Type: "String" }
 MyCondition = Condition !(MyParam == 'value')
     `.trim();
 
@@ -18,6 +19,8 @@ MyCondition = Condition !(MyParam == 'value')
 
   it('should use array form for And', () => {
     const cfnscript = `
+Cond1 = Parameter { Type: "String" }
+Cond2 = Parameter { Type: "String" }
 MyCondition = Condition Cond1 && Cond2
     `.trim();
 
@@ -31,6 +34,8 @@ MyCondition = Condition Cond1 && Cond2
 
   it('should use array form for Or', () => {
     const cfnscript = `
+Cond1 = Parameter { Type: "String" }
+Cond2 = Parameter { Type: "String" }
 MyCondition = Condition Cond1 || Cond2
     `.trim();
 
@@ -44,6 +49,7 @@ MyCondition = Condition Cond1 || Cond2
 
   it('should use array form for Equals', () => {
     const cfnscript = `
+MyParam = Parameter { Type: "String" }
 MyCondition = Condition MyParam == 'value'
     `.trim();
 

@@ -34,6 +34,9 @@ MyOutput = Output {
 
   it('should compile AWS.NoValue', () => {
     const source = `
+HasName = Condition true
+BucketName = Parameter { Type: "String" }
+
 MyResource = Resource AWS::S3::Bucket {
   BucketName: If(HasName, BucketName, AWS.NoValue)
 }

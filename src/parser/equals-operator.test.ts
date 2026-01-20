@@ -3,6 +3,7 @@ import { Compiler } from '../compiler/Compiler';
 describe('Equals operator', () => {
   it('should compile == operator to Fn::Equals', () => {
     const source = `
+Environment = Parameter { Type: "String" }
 IsProd = Condition Environment == "production"
     `.trim();
     
@@ -20,6 +21,8 @@ IsProd = Condition Environment == "production"
 
   it('should handle == with two identifiers', () => {
     const source = `
+Param1 = Parameter { Type: "String" }
+Param2 = Parameter { Type: "String" }
 IsEqual = Condition Param1 == Param2
     `.trim();
     
@@ -36,6 +39,7 @@ IsEqual = Condition Param1 == Param2
 
   it('should handle == with member access', () => {
     const source = `
+MyResource = Resource AWS::S3::Bucket {}
 IsEqual = Condition MyResource.Arn == "test"
     `.trim();
     
@@ -52,6 +56,7 @@ IsEqual = Condition MyResource.Arn == "test"
 
   it('should compile != operator to Not(Equals)', () => {
     const source = `
+Environment = Parameter { Type: "String" }
 IsNotProd = Condition Environment != "production"
     `.trim();
     

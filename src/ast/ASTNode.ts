@@ -1,6 +1,8 @@
 export interface CompilationContext {
   parameters: Set<string>;
   conditions: Set<string>;
+  resources: Set<string>;
+  mappings: Set<string>;
 }
 
 export abstract class ASTNode {
@@ -41,6 +43,18 @@ export class IdentifierNode extends ASTNode {
   }
   
   toCloudFormationWithContext(context: CompilationContext): any {
+    // Check if identifier is declared (skip AWS pseudo-parameters)
+    if (!this.name.startsWith('AWS::') && !this.name.startsWith('AWS.')) {
+      const isDeclared = context.parameters.has(this.name) || 
+                        context.conditions.has(this.name) ||
+                        context.resources.has(this.name) ||
+                        context.mappings.has(this.name);
+      
+      if (!isDeclared) {
+        throw new Error(`Identifier '${this.name}' is not declared`);
+      }
+    }
+    
     // Check if this identifier refers to a parameter (takes precedence)
     if (context.parameters.has(this.name)) {
       return { Ref: this.name };
@@ -140,7 +154,12 @@ export class FunctionCallNode extends ASTNode {
   }
 
   toCloudFormation(): any {
-    return this.toCloudFormationWithContext({ parameters: new Set(), conditions: new Set() });
+    return this.toCloudFormationWithContext({ 
+      parameters: new Set(), 
+      conditions: new Set(),
+      resources: new Set(),
+      mappings: new Set()
+    });
   }
   
   toCloudFormationWithContext(context: CompilationContext): any {
@@ -222,6 +241,24 @@ export class ResourceNode extends ASTNode {
     return result;
   }
 
+  toCloudFormationWithContext(context: CompilationContext): any {
+    const result: any = {
+      Type: this.type
+    };
+    
+    // Only add Properties if it was explicitly provided
+    if (this.hasExplicitProperties) {
+      result.Properties = this.properties.toCloudFormationWithContext(context);
+    }
+    
+    for (const attr of this.attributes) {
+      const [key, value] = attr.toCloudFormationWithContext(context);
+      result[key] = value;
+    }
+    
+    return result;
+  }
+
   toSource(): string {
     let result = `Resource("${this.type}", ${this.properties.toSource()})`;
     for (const attr of this.attributes) {
@@ -243,6 +280,22 @@ export class ResourceAttributeNode extends ASTNode {
     if ((this.name === 'Condition' || this.name === 'DependsOn') && 
         cfValue && typeof cfValue === 'object' && cfValue.Ref) {
       cfValue = cfValue.Ref;
+    }
+    
+    return [this.name, cfValue];
+  }
+
+  toCloudFormationWithContext(context: CompilationContext): [string, any] {
+    let cfValue = this.value.toCloudFormationWithContext(context);
+    
+    // For Condition and DependsOn, if the value is a Ref or Condition, unwrap it to just the string
+    if ((this.name === 'Condition' || this.name === 'DependsOn') && 
+        cfValue && typeof cfValue === 'object') {
+      if (cfValue.Ref) {
+        cfValue = cfValue.Ref;
+      } else if (cfValue.Condition) {
+        cfValue = cfValue.Condition;
+      }
     }
     
     return [this.name, cfValue];
@@ -276,6 +329,10 @@ export class OutputNode extends ASTNode {
     return this.properties.toCloudFormation();
   }
 
+  toCloudFormationWithContext(context: CompilationContext): any {
+    return this.properties.toCloudFormationWithContext(context);
+  }
+
   toSource(): string {
     return `Output(${this.properties.toSource()})`;
   }
@@ -290,6 +347,10 @@ export class RuleNode extends ASTNode {
     return this.properties.toCloudFormation();
   }
 
+  toCloudFormationWithContext(context: CompilationContext): any {
+    return this.properties.toCloudFormationWithContext(context);
+  }
+
   toSource(): string {
     return `Rule(${this.properties.toSource()})`;
   }
@@ -302,6 +363,10 @@ export class MappingNode extends ASTNode {
 
   toCloudFormation(): any {
     return this.value.toCloudFormation();
+  }
+
+  toCloudFormationWithContext(context: CompilationContext): any {
+    return this.value.toCloudFormationWithContext(context);
   }
 
   toSource(): string {
@@ -422,10 +487,12 @@ export class TemplateNode extends ASTNode {
   toCloudFormation(): any {
     const template: any = { Resources: {} };
     
-    // First pass: collect all parameter and condition names
+    // First pass: collect all declaration names
     const context = {
       parameters: new Set<string>(),
-      conditions: new Set<string>()
+      conditions: new Set<string>(),
+      resources: new Set<string>(),
+      mappings: new Set<string>()
     };
     
     for (const stmt of this.statements) {
@@ -434,6 +501,10 @@ export class TemplateNode extends ASTNode {
           context.parameters.add(stmt.name);
         } else if (stmt.value instanceof ConditionNode) {
           context.conditions.add(stmt.name);
+        } else if (stmt.value instanceof ResourceNode) {
+          context.resources.add(stmt.name);
+        } else if (stmt.value instanceof MappingNode) {
+          context.mappings.add(stmt.name);
         }
       }
     }

@@ -3,6 +3,7 @@ import { Compiler } from './Compiler';
 describe('Condition reference', () => {
   it('should compile condition references to { Condition: name }', () => {
     const cfnscript = `
+Env = Parameter { Type: "String" }
 IsProd = Condition Env == 'prod'
 IsStaging = Condition Env == 'staging'
 IsProdOrStaging = Condition IsProd || IsStaging
@@ -25,6 +26,7 @@ IsProdOrStaging = Condition IsProd || IsStaging
 
   it('should handle identifiers starting with digits', () => {
     const cfnscript = `
+Env = Parameter { Type: "String" }
 3RouteTableCondition = Condition Env == 'prod'
 4RouteTableCondition = Condition Env == 'staging'
 2RouteTableCondition = Condition 3RouteTableCondition || 4RouteTableCondition
