@@ -23,11 +23,11 @@ IsProdOrStaging = Condition IsProd || IsStaging
     });
   });
 
-  it('should handle quoted condition names', () => {
+  it('should handle identifiers starting with digits', () => {
     const cfnscript = `
-'3RouteTableCondition' = Condition Env == 'prod'
-'4RouteTableCondition' = Condition Env == 'staging'
-'2RouteTableCondition' = Condition '3RouteTableCondition' || '4RouteTableCondition'
+3RouteTableCondition = Condition Env == 'prod'
+4RouteTableCondition = Condition Env == 'staging'
+2RouteTableCondition = Condition 3RouteTableCondition || 4RouteTableCondition
 `;
 
     const compiler = new Compiler();
@@ -38,8 +38,8 @@ IsProdOrStaging = Condition IsProd || IsStaging
       '4RouteTableCondition': { 'Fn::Equals': [{ Ref: 'Env' }, 'staging'] },
       '2RouteTableCondition': {
         'Fn::Or': [
-          '3RouteTableCondition',
-          '4RouteTableCondition'
+          { Condition: '3RouteTableCondition' },
+          { Condition: '4RouteTableCondition' }
         ]
       }
     });

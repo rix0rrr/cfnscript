@@ -59,35 +59,31 @@ export class Decompiler {
     
     if (template.Parameters) {
       for (const [name, param] of Object.entries(template.Parameters)) {
-        const quotedName = this.needsQuoting(name) ? `'${name}'` : name;
-        lines.push(`${quotedName} = Parameter ${this.objectToSource(param)}`);
+        lines.push(`${name} = Parameter ${this.objectToSource(param)}`);
       }
     }
     
     if (template.Mappings && Object.keys(template.Mappings).length > 0) {
       for (const [name, mapping] of Object.entries(template.Mappings)) {
-        const quotedName = this.needsQuoting(name) ? `'${name}'` : name;
-        lines.push(`${quotedName} = Mapping ${this.objectToSource(mapping)}`);
+        lines.push(`${name} = Mapping ${this.objectToSource(mapping)}`);
       }
     }
     
     if (template.Conditions) {
       for (const [name, condition] of Object.entries(template.Conditions)) {
-        const quotedName = this.needsQuoting(name) ? `'${name}'` : name;
-        lines.push(`${quotedName} = Condition ${this.valueToSource(condition)}`);
+        lines.push(`${name} = Condition ${this.valueToSource(condition)}`);
       }
     }
     
     if (template.Resources) {
       for (const [name, resource] of Object.entries(template.Resources)) {
-        const quotedName = this.needsQuoting(name) ? `'${name}'` : name;
         let line: string;
         if (resource.Properties === undefined) {
           // No Properties key - omit properties object
-          line = `${quotedName} = Resource ${resource.Type}`;
+          line = `${name} = Resource ${resource.Type}`;
         } else {
           // Properties key exists (even if empty) - include properties object
-          line = `${quotedName} = Resource ${resource.Type} ${this.objectToSource(resource.Properties)}`;
+          line = `${name} = Resource ${resource.Type} ${this.objectToSource(resource.Properties)}`;
         }
         
         if (resource.DependsOn) {
@@ -125,24 +121,17 @@ export class Decompiler {
     
     if (template.Outputs) {
       for (const [name, output] of Object.entries(template.Outputs)) {
-        const quotedName = this.needsQuoting(name) ? `'${name}'` : name;
-        lines.push(`${quotedName} = Output ${this.objectToSource(output)}`);
+        lines.push(`${name} = Output ${this.objectToSource(output)}`);
       }
     }
     
     if (template.Rules) {
       for (const [name, rule] of Object.entries(template.Rules)) {
-        const quotedName = this.needsQuoting(name) ? `'${name}'` : name;
-        lines.push(`${quotedName} = Rule ${this.objectToSource(rule)}`);
+        lines.push(`${name} = Rule ${this.objectToSource(rule)}`);
       }
     }
     
     return this.printer.format(lines.join('\n\n'));
-  }
-
-  private needsQuoting(name: string): boolean {
-    // Quote if name starts with a digit or contains special characters
-    return /^[0-9]/.test(name) || !/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(name);
   }
 
   private objectToSource(obj: Record<string, any>): string {
