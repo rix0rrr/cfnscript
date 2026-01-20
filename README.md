@@ -85,8 +85,8 @@ Value: If(IsProd, "prod-value", "dev-value")
 ### Complete Template
 
 ```js
-AWSTemplateFormatVersion("2010-09-09")
-Description("My CloudFormation template")
+AWSTemplateFormatVersion "2010-09-09"
+Description "My CloudFormation template"
 
 Environment = Parameter {
   Type: "String",
@@ -116,10 +116,11 @@ BucketArn = Output {
 
 ### Template Sections
 
-- `AWSTemplateFormatVersion("2010-09-09")`
-- `Description("Template description")`
-- `Transform("AWS::Serverless-2016-10-31")`
-- `Metadata({ ... })`
+- `AWSTemplateFormatVersion "2010-09-09"`
+- `Description "Template description"`
+- `Transform "AWS::Serverless-2016-10-31"`
+- `Metadata { ... }`
+- `Globals { ... }`
 
 ### Declarations
 

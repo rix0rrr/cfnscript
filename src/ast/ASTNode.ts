@@ -394,7 +394,7 @@ export class DescriptionNode extends ASTNode {
   }
 
   toSource(): string {
-    return `Description("${this.value}")`;
+    return `Description "${this.value}"`;
   }
 }
 
@@ -408,7 +408,7 @@ export class AWSTemplateFormatVersionNode extends ASTNode {
   }
 
   toSource(): string {
-    return `AWSTemplateFormatVersion("${this.value}")`;
+    return `AWSTemplateFormatVersion "${this.value}"`;
   }
 }
 
@@ -423,9 +423,9 @@ export class TransformNode extends ASTNode {
 
   toSource(): string {
     if (Array.isArray(this.value)) {
-      return `Transform([${this.value.map(v => `"${v}"`).join(', ')}])`;
+      return `Transform [${this.value.map(v => `"${v}"`).join(', ')}]`;
     }
-    return `Transform("${this.value}")`;
+    return `Transform "${this.value}"`;
   }
 }
 
@@ -439,7 +439,7 @@ export class MetadataNode extends ASTNode {
   }
 
   toSource(): string {
-    return `Metadata(${this.value.toSource()})`;
+    return `Metadata ${this.value.toSource()}`;
   }
 }
 
@@ -453,7 +453,7 @@ export class GlobalsNode extends ASTNode {
   }
 
   toSource(): string {
-    return `Globals(${this.value.toSource()})`;
+    return `Globals ${this.value.toSource()}`;
   }
 }
 

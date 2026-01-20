@@ -46,11 +46,9 @@ export class Parser {
 
   private parseSectionDeclaration(name: string): AST.ASTNode {
     this.advance(); // Skip section name
-    this.expect(TokenType.LPAREN);
     
     if (name === 'Description' || name === 'AWSTemplateFormatVersion') {
       const value = this.expect(TokenType.STRING).value;
-      this.expect(TokenType.RPAREN);
       return name === 'Description' 
         ? new AST.DescriptionNode(value)
         : new AST.AWSTemplateFormatVersionNode(value);
@@ -58,13 +56,11 @@ export class Parser {
     
     if (name === 'Transform') {
       const value = this.parseExpression();
-      this.expect(TokenType.RPAREN);
       return new AST.TransformNode(value.toCloudFormation());
     }
     
     // Metadata or Globals
     const value = this.parseExpression() as AST.ObjectNode;
-    this.expect(TokenType.RPAREN);
     return name === 'Metadata' 
       ? new AST.MetadataNode(value)
       : new AST.GlobalsNode(value);

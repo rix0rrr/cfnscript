@@ -37,27 +37,27 @@ export class Decompiler {
     const lines: string[] = [];
     
     if (template.AWSTemplateFormatVersion) {
-      lines.push(`AWSTemplateFormatVersion('${template.AWSTemplateFormatVersion}')`);
+      lines.push(`AWSTemplateFormatVersion '${template.AWSTemplateFormatVersion}'`);
     }
     
     if (template.Description) {
-      lines.push(`Description('${this.escapeString(template.Description)}')`);
+      lines.push(`Description '${this.escapeString(template.Description)}'`);
     }
     
     if (template.Transform) {
       if (Array.isArray(template.Transform)) {
-        lines.push(`Transform([${template.Transform.map(t => `'${t}'`).join(', ')}])`);
+        lines.push(`Transform [${template.Transform.map(t => `'${t}'`).join(', ')}]`);
       } else {
-        lines.push(`Transform('${template.Transform}')`);
+        lines.push(`Transform '${template.Transform}'`);
       }
     }
     
     if (template.Metadata) {
-      lines.push(`Metadata(${this.objectToSource(template.Metadata)})`);
+      lines.push(`Metadata ${this.objectToSource(template.Metadata)}`);
     }
     
     if (template.Globals) {
-      lines.push(`Globals(${this.objectToSource(template.Globals)})`);
+      lines.push(`Globals ${this.objectToSource(template.Globals)}`);
     }
     
     if (template.Parameters) {
