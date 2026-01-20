@@ -72,6 +72,7 @@ Value: MyBucket.Arn
 
 # Operators for conditions
 IsProd = Condition Environment == "production"
+IsNotProd = Condition !(Environment == "production")
 IsDevOrTest = Condition Environment == "dev" || Environment == "test"
 IsUSProd = Condition Region == "us-east-1" && Environment == "production"
 
@@ -146,7 +147,6 @@ All CloudFormation intrinsic functions are supported:
 - `Select(index, list)`
 - `GetAZs(region)`
 - `If(condition, trueValue, falseValue)`
-- `Not(condition)`
 - `FindInMap(map, key1, key2)`
 - `ImportValue(name)`
 - `Base64(string)`
@@ -157,6 +157,7 @@ All CloudFormation intrinsic functions are supported:
 ### Condition Operators
 
 For conditions, use operators instead of function calls:
+- `!condition` compiles to `Fn::Not`
 - `value1 == value2` compiles to `Fn::Equals`
 - `condition1 && condition2` compiles to `Fn::And`
 - `condition1 || condition2` compiles to `Fn::Or`

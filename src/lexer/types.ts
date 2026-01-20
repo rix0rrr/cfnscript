@@ -8,6 +8,7 @@ export enum TokenType {
   DOUBLE_AMPERSAND,
   PIPE,
   DOUBLE_PIPE,
+  EXCLAMATION,
   LPAREN,
   RPAREN,
   LBRACE,

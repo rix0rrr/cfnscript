@@ -45,6 +45,7 @@ export class Lexer {
           return this.makeToken(TokenType.DOUBLE_PIPE, '||', line, column);
         }
         return this.makeToken(TokenType.PIPE, '|', line, column);
+      case '!': return this.advance(), this.makeToken(TokenType.EXCLAMATION, '!', line, column);
       case '(': return this.advance(), this.makeToken(TokenType.LPAREN, '(', line, column);
       case ')': return this.advance(), this.makeToken(TokenType.RPAREN, ')', line, column);
       case '{': return this.advance(), this.makeToken(TokenType.LBRACE, '{', line, column);

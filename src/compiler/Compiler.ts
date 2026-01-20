@@ -227,6 +227,16 @@ export class Decompiler {
             return args.map((a: any) => this.valueToSource(a, 'argument')).join(' || ');
           }
           
+          // Special handling for Not - output as ! operator
+          if (funcName === 'Not' && Array.isArray(args) && args.length === 1) {
+            const operand = this.valueToSource(args[0], 'argument');
+            // Add parentheses if operand contains operators
+            if (operand.includes('==') || operand.includes('&&') || operand.includes('||')) {
+              return `!(${operand})`;
+            }
+            return `!${operand}`;
+          }
+          
           // Special handling for Sub - preserve ${} syntax as-is
           if (funcName === 'Sub') {
             if (typeof args === 'string') {

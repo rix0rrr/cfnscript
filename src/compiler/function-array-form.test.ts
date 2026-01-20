@@ -3,7 +3,7 @@ import { Compiler } from '../compiler/Compiler';
 describe('Functions that always require array form', () => {
   it('should use array form for Not even with single argument', () => {
     const cfnscript = `
-MyCondition = Condition Not(MyParam == 'value')
+MyCondition = Condition !(MyParam == 'value')
     `.trim();
 
     const compiler = new Compiler();

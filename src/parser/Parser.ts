@@ -118,16 +118,27 @@ export class Parser {
   }
 
   private parseEqualityExpression(): AST.ASTNode {
-    let expr = this.parseMemberExpression();
+    let expr = this.parseUnaryExpression();
     
     // Handle == operator
     if (this.current.type === TokenType.DOUBLE_EQUALS) {
       this.advance();
-      const right = this.parseMemberExpression();
+      const right = this.parseUnaryExpression();
       return new AST.FunctionCallNode('Equals', [expr, right]);
     }
     
     return expr;
+  }
+
+  private parseUnaryExpression(): AST.ASTNode {
+    // Handle ! operator
+    if (this.current.type === TokenType.EXCLAMATION) {
+      this.advance();
+      const operand = this.parseUnaryExpression();
+      return new AST.FunctionCallNode('Not', [operand]);
+    }
+    
+    return this.parseMemberExpression();
   }
 
   private parseMemberExpression(): AST.ASTNode {
@@ -277,10 +288,11 @@ export class Parser {
     this.expect(TokenType.LPAREN);
     
     // Disallow deprecated function syntax for operators
-    if (name === 'Equals' || name === 'Or' || name === 'And') {
+    if (name === 'Equals' || name === 'Or' || name === 'And' || name === 'Not') {
+      const operator = name === 'Equals' ? '==' : name === 'Or' ? '||' : name === 'And' ? '&&' : '!';
       throw new Error(
         `${name}() function syntax is not supported. Use operators instead: ` +
-        `${name === 'Equals' ? '==' : name === 'Or' ? '||' : '&&'} at line ${this.current.line}`
+        `${operator} at line ${this.current.line}`
       );
     }
     
