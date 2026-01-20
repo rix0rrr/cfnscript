@@ -148,17 +148,34 @@ export class Parser {
   private parseMemberExpression(): AST.ASTNode {
     let expr = this.parsePrimary();
     
-    // Handle member access
-    while (this.current.type === TokenType.DOT) {
-      this.advance();
-      const property = this.expect(TokenType.IDENTIFIER).value;
-      
-      // Special case: AWS.Property becomes Ref('AWS::Property')
-      if (expr instanceof AST.IdentifierNode && expr.name === 'AWS') {
-        return new AST.FunctionCallNode('Ref', [new AST.LiteralNode(`AWS::${property}`)]);
+    // Handle member access and bracket notation
+    while ((this.current.type as TokenType) === TokenType.DOT || (this.current.type as TokenType) === TokenType.LBRACKET) {
+      if (this.current.type === TokenType.DOT) {
+        this.advance();
+        const property = this.expect(TokenType.IDENTIFIER).value;
+        
+        // Special case: AWS.Property becomes an identifier AWS::Property (which compiles to Ref)
+        if (expr instanceof AST.IdentifierNode && expr.name === 'AWS') {
+          return new AST.IdentifierNode(`AWS::${property}`);
+        }
+        
+        expr = new AST.MemberAccessNode(expr, property);
+      } else {
+        // Bracket notation: Resource["Prop1", "Prop2"]
+        this.advance(); // Skip [
+        const properties: string[] = [];
+        
+        properties.push(this.expect(TokenType.STRING).value);
+        while ((this.current.type as TokenType) === TokenType.COMMA) {
+          this.advance();
+          properties.push(this.expect(TokenType.STRING).value);
+        }
+        
+        this.expect(TokenType.RBRACKET);
+        
+        // Create a GetAttArrayNode
+        expr = new AST.GetAttArrayNode(expr, properties);
       }
-      
-      expr = new AST.MemberAccessNode(expr, property);
     }
     
     return expr;
@@ -291,18 +308,19 @@ export class Parser {
   private parseFunctionCall(name: string): AST.ASTNode {
     this.expect(TokenType.LPAREN);
     
-    // Disallow deprecated function syntax for operators
-    const operatorMap: Record<string, string> = {
-      'Equals': '==',
-      'Or': '||',
-      'And': '&&',
-      'Not': '!'
+    // Disallow deprecated function syntax
+    const disallowedFunctions: Record<string, string> = {
+      'Equals': 'Use == operator instead',
+      'Or': 'Use || operator instead',
+      'And': 'Use && operator instead',
+      'Not': 'Use ! operator instead',
+      'Ref': 'Use variable reference instead (e.g., MyBucket)',
+      'GetAtt': 'Use dot notation instead (e.g., MyBucket.Arn)'
     };
     
-    if (operatorMap[name]) {
+    if (disallowedFunctions[name]) {
       throw new Error(
-        `${name}() function syntax is not supported. Use operators instead: ` +
-        `${operatorMap[name]} at line ${this.current.line}`
+        `${name}() function syntax is not supported. ${disallowedFunctions[name]} at line ${this.current.line}`
       );
     }
     

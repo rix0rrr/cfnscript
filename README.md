@@ -140,8 +140,6 @@ BucketArn = Output {
 ### Intrinsic Functions
 
 All CloudFormation intrinsic functions are supported:
-- `Ref(name)` or just use the variable name
-- `GetAtt(resource, attribute)` or use dot notation: `resource.attribute`
 - `Join(delimiter, list)`
 - `Split(delimiter, string)`
 - `Sub(template, variables)`
@@ -155,9 +153,14 @@ All CloudFormation intrinsic functions are supported:
 - `ToJsonString(object)`
 - `Length(array)`
 
+### References
+
+- Use variable name for `Ref`: `MyBucket` compiles to `{ "Ref": "MyBucket" }`
+- Use dot notation for `GetAtt`: `MyBucket.Arn` compiles to `{ "Fn::GetAtt": ["MyBucket", "Arn"] }`
+
 ### Condition Operators
 
-For conditions, use operators instead of function calls:
+Use operators instead of function calls:
 - `!condition` compiles to `Fn::Not`
 - `value1 == value2` compiles to `Fn::Equals`
 - `value1 != value2` compiles to `Fn::Not` with `Fn::Equals` (syntactic sugar for `!(value1 == value2)`)

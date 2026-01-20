@@ -151,6 +151,24 @@ export class MemberAccessNode extends ASTNode {
   }
 }
 
+export class GetAttArrayNode extends ASTNode {
+  constructor(public object: ASTNode, public properties: string[]) {
+    super();
+  }
+
+  toCloudFormation(): any {
+    if (this.object instanceof IdentifierNode) {
+      return { 'Fn::GetAtt': [this.object.name, ...this.properties] };
+    }
+    throw new Error('GetAtt array notation only supported on identifiers');
+  }
+
+  toSource(): string {
+    const props = this.properties.map(p => `"${p}"`).join(', ');
+    return `${this.object.toSource()}[${props}]`;
+  }
+}
+
 export class FunctionCallNode extends ASTNode {
   constructor(public name: string, public args: ASTNode[]) {
     super();
@@ -166,10 +184,6 @@ export class FunctionCallNode extends ASTNode {
   }
   
   toCloudFormationWithContext(context: CompilationContext): any {
-    if (this.name === 'Ref') {
-      return { Ref: this.args[0].toCloudFormationWithContext(context) };
-    }
-    
     if (this.name === 'If') {
       return this.buildIfFunction(context);
     }

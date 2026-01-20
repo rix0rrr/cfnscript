@@ -28,7 +28,7 @@ describe('GetAtt with multiple array elements', () => {
     });
   });
 
-  it('should use explicit GetAtt for 3+ element array', () => {
+  it('should convert 3+ element array to bracket notation', () => {
     const original = {
       Resources: {
         MyResource: {
@@ -45,11 +45,12 @@ describe('GetAtt with multiple array elements', () => {
     const decompiler = new Decompiler();
     const cfnscript = decompiler.decompile(original);
 
-    expect(cfnscript).toContain("GetAtt('OtherResource', 'Compliance', 'Type')");
+    expect(cfnscript).toContain('OtherResource["Compliance", "Type"]');
 
     const compiler = new Compiler();
     const recompiled = compiler.compile(cfnscript);
 
+    // Preserves 3-element form
     expect(recompiled.Resources.MyResource.Properties?.Value).toEqual({
       'Fn::GetAtt': ['OtherResource', 'Compliance', 'Type']
     });

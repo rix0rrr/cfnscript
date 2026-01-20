@@ -188,13 +188,17 @@ export class Decompiler {
   }
 
   private getAttToSource(attValue: any): string {
-    if (Array.isArray(attValue)) {
+    if (Array.isArray(attValue) && attValue.length >= 2) {
       if (attValue.length === 2) {
+        // 2-element form: use dot notation
         return `${attValue[0]}.${attValue[1]}`;
+      } else {
+        // 3+ element form: use bracket notation
+        const props = attValue.slice(1).map((p: string) => `"${p}"`).join(', ');
+        return `${attValue[0]}[${props}]`;
       }
-      return `GetAtt(${attValue.map((v: any) => `'${v}'`).join(', ')})`;
     }
-    return `GetAtt(${attValue})`;
+    throw new Error(`Invalid Fn::GetAtt format: ${JSON.stringify(attValue)}`);
   }
 
   private intrinsicToSource(funcName: string, args: any): string {
