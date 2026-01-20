@@ -110,8 +110,8 @@ export class Decompiler {
     const attributes = [
       { key: 'DependsOn', formatter: (v: any) => Array.isArray(v) ? `[${v.map(d => `'${d}'`).join(', ')}]` : `'${v}'` },
       { key: 'Condition', formatter: (v: any) => v },
-      { key: 'DeletionPolicy', formatter: (v: any) => `'${v}'` },
-      { key: 'UpdateReplacePolicy', formatter: (v: any) => `'${v}'` },
+      { key: 'DeletionPolicy', formatter: (v: any) => v },
+      { key: 'UpdateReplacePolicy', formatter: (v: any) => v },
       { key: 'Metadata', formatter: (v: any) => this.objectToSource(v) },
       { key: 'CreationPolicy', formatter: (v: any) => this.objectToSource(v) },
       { key: 'UpdatePolicy', formatter: (v: any) => this.objectToSource(v) },

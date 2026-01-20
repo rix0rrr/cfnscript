@@ -274,7 +274,28 @@ export class Parser {
       const attrName = this.current.value;
       this.advance();
       this.expect(TokenType.LPAREN);
-      const attrValue = this.parseExpression();
+      
+      let attrValue: AST.ASTNode;
+      if (attrName === 'DeletionPolicy' || attrName === 'UpdateReplacePolicy') {
+        // Parse as unquoted identifier
+        const policyValue = this.expect(TokenType.IDENTIFIER).value;
+        
+        // Validate policy value
+        const validDeletionPolicies = ['Delete', 'Retain', 'RetainExceptOnCreate', 'Snapshot'];
+        const validUpdateReplacePolicies = ['Delete', 'Retain', 'Snapshot'];
+        const validPolicies = attrName === 'DeletionPolicy' ? validDeletionPolicies : validUpdateReplacePolicies;
+        
+        if (!validPolicies.includes(policyValue)) {
+          throw new Error(
+            `Invalid ${attrName} value '${policyValue}'. Must be one of: ${validPolicies.join(', ')} at line ${this.current.line}`
+          );
+        }
+        
+        attrValue = new AST.LiteralNode(policyValue);
+      } else {
+        attrValue = this.parseExpression();
+      }
+      
       this.expect(TokenType.RPAREN);
       resource.attributes.push(new AST.ResourceAttributeNode(attrName, attrValue));
     }

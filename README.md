@@ -38,7 +38,7 @@ MyBucket = Resource AWS::S3::Bucket {
 ```js
 MyBucket = Resource AWS::S3::Bucket {
   BucketName: "my-bucket"
-} DependsOn(OtherResource) Condition(IsProd) DeletionPolicy("Retain")
+} DependsOn(OtherResource) Condition(IsProd) DeletionPolicy(Retain)
 ```
 
 ### Parameters
@@ -134,8 +134,8 @@ BucketArn = Output {
 
 - `DependsOn(resource)`
 - `Condition(condition)`
-- `DeletionPolicy("Retain")`
-- `UpdateReplacePolicy("Snapshot")`
+- `DeletionPolicy(Delete | Retain | RetainExceptOnCreate | Snapshot)`
+- `UpdateReplacePolicy(Delete | Retain | Snapshot)`
 
 ### Intrinsic Functions
 
