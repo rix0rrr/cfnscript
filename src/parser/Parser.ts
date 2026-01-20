@@ -268,6 +268,14 @@ export class Parser {
   private parseFunctionCall(name: string): AST.ASTNode {
     this.expect(TokenType.LPAREN);
     
+    // Disallow deprecated function syntax for operators
+    if (name === 'Equals' || name === 'Or' || name === 'And') {
+      throw new Error(
+        `${name}() function syntax is not supported. Use operators instead: ` +
+        `${name === 'Equals' ? '==' : name === 'Or' ? '||' : '&&'} at line ${this.current.line}`
+      );
+    }
+    
     const args: AST.ASTNode[] = [];
     
     if (this.current.type !== TokenType.RPAREN) {

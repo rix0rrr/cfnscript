@@ -3,7 +3,7 @@ import { Compiler } from '../compiler/Compiler';
 describe('Functions that always require array form', () => {
   it('should use array form for Not even with single argument', () => {
     const cfnscript = `
-MyCondition = Condition Not(Equals(MyParam, 'value'))
+MyCondition = Condition Not(MyParam == 'value')
     `.trim();
 
     const compiler = new Compiler();
@@ -18,7 +18,7 @@ MyCondition = Condition Not(Equals(MyParam, 'value'))
 
   it('should use array form for And', () => {
     const cfnscript = `
-MyCondition = Condition And(Cond1, Cond2)
+MyCondition = Condition Cond1 && Cond2
     `.trim();
 
     const compiler = new Compiler();
@@ -31,7 +31,7 @@ MyCondition = Condition And(Cond1, Cond2)
 
   it('should use array form for Or', () => {
     const cfnscript = `
-MyCondition = Condition Or(Cond1, Cond2)
+MyCondition = Condition Cond1 || Cond2
     `.trim();
 
     const compiler = new Compiler();
@@ -44,7 +44,7 @@ MyCondition = Condition Or(Cond1, Cond2)
 
   it('should use array form for Equals', () => {
     const cfnscript = `
-MyCondition = Condition Equals(MyParam, 'value')
+MyCondition = Condition MyParam == 'value'
     `.trim();
 
     const compiler = new Compiler();

@@ -70,6 +70,11 @@ Bucket: MyBucket
 # Implicit GetAtt (dot notation)
 Value: MyBucket.Arn
 
+# Operators for conditions
+IsProd = Condition Environment == "production"
+IsDevOrTest = Condition Environment == "dev" || Environment == "test"
+IsUSProd = Condition Region == "us-east-1" && Environment == "production"
+
 # Explicit function calls
 Value: Join(",", ["a", "b", "c"])
 Value: Sub("Hello ${Name}", { Name: MyParam })
@@ -87,7 +92,7 @@ Environment = Parameter {
   Default: "dev"
 }
 
-IsProd = Condition Equals(Environment, "production")
+IsProd = Condition Environment == "production"
 
 MyBucket = Resource AWS::S3::Bucket {
   BucketName: Join("-", ["my-bucket", Environment])
@@ -132,7 +137,7 @@ BucketArn = Output {
 
 ### Intrinsic Functions
 
-All CloudFormation intrinsic functions are supported as function calls:
+All CloudFormation intrinsic functions are supported:
 - `Ref(name)` or just use the variable name
 - `GetAtt(resource, attribute)` or use dot notation: `resource.attribute`
 - `Join(delimiter, list)`
@@ -141,16 +146,20 @@ All CloudFormation intrinsic functions are supported as function calls:
 - `Select(index, list)`
 - `GetAZs(region)`
 - `If(condition, trueValue, falseValue)`
-- `And(condition1, condition2, ...)`
-- `Or(condition1, condition2, ...)`
 - `Not(condition)`
-- `Equals(value1, value2)`
 - `FindInMap(map, key1, key2)`
 - `ImportValue(name)`
 - `Base64(string)`
 - `Cidr(ipBlock, count, cidrBits)`
 - `ToJsonString(object)`
 - `Length(array)`
+
+### Condition Operators
+
+For conditions, use operators instead of function calls:
+- `value1 == value2` compiles to `Fn::Equals`
+- `condition1 && condition2` compiles to `Fn::And`
+- `condition1 || condition2` compiles to `Fn::Or`
 
 ## License
 
