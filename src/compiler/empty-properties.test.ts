@@ -14,7 +14,7 @@ describe('Resource with empty or missing Properties', () => {
     const decompiler = new Decompiler();
     const cfnscript = decompiler.decompile(original);
 
-    expect(cfnscript).toContain('MyTopic = Resource(\'AWS::SNS::Topic\', {})');
+    expect(cfnscript).toContain('MyTopic = Resource AWS::SNS::Topic {}');
 
     const compiler = new Compiler();
     const recompiled = compiler.compile(cfnscript);
@@ -39,7 +39,7 @@ describe('Resource with empty or missing Properties', () => {
     const cfnscript = decompiler.decompile(original);
 
     // Missing Properties should decompile without second argument
-    expect(cfnscript).toContain('MyTopic = Resource(\'AWS::SNS::Topic\')');
+    expect(cfnscript).toContain('MyTopic = Resource AWS::SNS::Topic');
 
     const compiler = new Compiler();
     const recompiled = compiler.compile(cfnscript);

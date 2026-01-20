@@ -3,7 +3,7 @@ import { Compiler } from '../compiler/Compiler';
 describe('Or operator', () => {
   it('should compile || operator to Fn::Or', () => {
     const source = `
-IsValid = Condition(IsDev || IsTest)
+IsValid = Condition IsDev || IsTest
     `.trim();
     
     const compiler = new Compiler();
@@ -20,43 +20,43 @@ IsValid = Condition(IsDev || IsTest)
 
   it('should handle || with multiple conditions', () => {
     const source = `
-IsValid = Condition(Cond1 || Cond2 || Cond3)
+IsAnyEnv = Condition IsDev || IsTest || IsProd
     `.trim();
     
     const compiler = new Compiler();
     const result = compiler.compile(source);
     
-    expect(result.Conditions!.IsValid).toEqual({
+    expect(result.Conditions!.IsAnyEnv).toEqual({
       'Fn::Or': [
-        { Ref: 'Cond1' },
-        { Ref: 'Cond2' },
-        { Ref: 'Cond3' }
+        { Ref: 'IsDev' },
+        { Ref: 'IsTest' },
+        { Ref: 'IsProd' }
       ]
     });
   });
 
   it('should handle mixed && and || with correct precedence', () => {
     const source = `
-IsValid = Condition(Cond1 && Cond2 || Cond3 && Cond4)
+Complex = Condition IsDev && IsUS || IsProd && IsEU
     `.trim();
     
     const compiler = new Compiler();
     const result = compiler.compile(source);
     
-    // || has lower precedence than &&, so this should be:
-    // Or(And(Cond1, Cond2), And(Cond3, Cond4))
-    expect(result.Conditions!.IsValid).toEqual({
+    // && has higher precedence than ||
+    // So this should be: (IsDev && IsUS) || (IsProd && IsEU)
+    expect(result.Conditions!.Complex).toEqual({
       'Fn::Or': [
         {
           'Fn::And': [
-            { Ref: 'Cond1' },
-            { Ref: 'Cond2' }
+            { Ref: 'IsDev' },
+            { Ref: 'IsUS' }
           ]
         },
         {
           'Fn::And': [
-            { Ref: 'Cond3' },
-            { Ref: 'Cond4' }
+            { Ref: 'IsProd' },
+            { Ref: 'IsEU' }
           ]
         }
       ]

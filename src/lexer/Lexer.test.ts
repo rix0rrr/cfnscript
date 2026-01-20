@@ -158,19 +158,20 @@ describe('Lexer', () => {
 
   describe('complex expressions', () => {
     it('should tokenize resource declaration', () => {
-      const lexer = new Lexer('MyBucket = Resource("AWS::S3::Bucket", { BucketName: "my-bucket" })');
+      const lexer = new Lexer('MyBucket = Resource AWS::S3::Bucket { BucketName: "my-bucket" }');
       expect(lexer.nextToken().value).toBe('MyBucket');
       expect(lexer.nextToken().type).toBe(TokenType.EQUALS);
       expect(lexer.nextToken().value).toBe('Resource');
-      expect(lexer.nextToken().type).toBe(TokenType.LPAREN);
-      expect(lexer.nextToken().value).toBe('AWS::S3::Bucket');
-      expect(lexer.nextToken().type).toBe(TokenType.COMMA);
+      expect(lexer.nextToken().value).toBe('AWS');
+      expect(lexer.nextToken().type).toBe(TokenType.DOUBLE_COLON);
+      expect(lexer.nextToken().value).toBe('S3');
+      expect(lexer.nextToken().type).toBe(TokenType.DOUBLE_COLON);
+      expect(lexer.nextToken().value).toBe('Bucket');
       expect(lexer.nextToken().type).toBe(TokenType.LBRACE);
       expect(lexer.nextToken().value).toBe('BucketName');
       expect(lexer.nextToken().type).toBe(TokenType.COLON);
       expect(lexer.nextToken().value).toBe('my-bucket');
       expect(lexer.nextToken().type).toBe(TokenType.RBRACE);
-      expect(lexer.nextToken().type).toBe(TokenType.RPAREN);
       expect(lexer.nextToken().type).toBe(TokenType.EOF);
     });
   });

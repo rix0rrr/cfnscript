@@ -3,7 +3,7 @@ import { Compiler } from '../compiler/Compiler';
 describe('Equals operator', () => {
   it('should compile == operator to Fn::Equals', () => {
     const source = `
-IsProd = Condition(Environment == "production")
+IsProd = Condition Environment == "production"
     `.trim();
     
     const compiler = new Compiler();
@@ -20,7 +20,7 @@ IsProd = Condition(Environment == "production")
 
   it('should handle == with two identifiers', () => {
     const source = `
-IsEqual = Condition(Param1 == Param2)
+IsEqual = Condition Param1 == Param2
     `.trim();
     
     const compiler = new Compiler();
@@ -36,7 +36,7 @@ IsEqual = Condition(Param1 == Param2)
 
   it('should handle == with member access', () => {
     const source = `
-IsEqual = Condition(MyResource.Arn == "test")
+IsEqual = Condition MyResource.Arn == "test"
     `.trim();
     
     const compiler = new Compiler();

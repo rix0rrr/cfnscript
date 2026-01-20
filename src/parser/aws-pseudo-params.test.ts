@@ -3,9 +3,9 @@ import { Compiler } from '../compiler/Compiler';
 describe('AWS pseudo-parameters', () => {
   it('should compile AWS.Region to Ref AWS::Region', () => {
     const source = `
-MyOutput = Output({
+MyOutput = Output {
   Value: AWS.Region
-})
+}
     `.trim();
     
     const compiler = new Compiler();
@@ -19,9 +19,9 @@ MyOutput = Output({
 
   it('should compile AWS.AccountId', () => {
     const source = `
-MyOutput = Output({
+MyOutput = Output {
   Value: AWS.AccountId
-})
+}
     `.trim();
     
     const compiler = new Compiler();
@@ -34,9 +34,9 @@ MyOutput = Output({
 
   it('should compile AWS.NoValue', () => {
     const source = `
-MyResource = Resource('AWS::S3::Bucket', {
+MyResource = Resource AWS::S3::Bucket {
   BucketName: If(HasName, BucketName, AWS.NoValue)
-})
+}
     `.trim();
     
     const compiler = new Compiler();
@@ -53,10 +53,10 @@ MyResource = Resource('AWS::S3::Bucket', {
 
   it('should compile AWS.StackName', () => {
     const source = `
-MyTag = Parameter({
+MyTag = Parameter {
   Type: 'String',
   Default: AWS.StackName
-})
+}
     `.trim();
     
     const compiler = new Compiler();

@@ -17,6 +17,7 @@ export enum TokenType {
   COMMA,
   DOT,
   COLON,
+  DOUBLE_COLON,
   COMMENT,
   EOF
 }

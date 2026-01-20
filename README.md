@@ -25,40 +25,40 @@ $ npx tsx src/cli/index.ts decompile template.yaml
 ### Basic Resource
 
 ```js
-MyBucket = Resource("AWS::S3::Bucket", {
+MyBucket = Resource AWS::S3::Bucket {
   BucketName: "my-bucket",
   WebsiteConfiguration: {
     IndexDocument: "index.html"
   }
-})
+}
 ```
 
 ### Resource with Attributes
 
 ```js
-MyBucket = Resource("AWS::S3::Bucket", {
+MyBucket = Resource AWS::S3::Bucket {
   BucketName: "my-bucket"
-}) DependsOn(OtherResource) Condition(IsProd) DeletionPolicy("Retain")
+} DependsOn(OtherResource) Condition(IsProd) DeletionPolicy("Retain")
 ```
 
 ### Parameters
 
 ```js
-Environment = Parameter({
+Environment = Parameter {
   Type: "String",
   Default: "dev",
   AllowedValues: ["dev", "prod"]
-})
+}
 ```
 
 ### Outputs
 
 ```js
-BucketArn = Output({
+BucketArn = Output {
   Value: MyBucket.Arn,
   Description: "ARN of the S3 bucket",
   Export: { Name: "MyBucketArn" }
-})
+}
 ```
 
 ### Intrinsic Functions
@@ -82,21 +82,21 @@ Value: If(IsProd, "prod-value", "dev-value")
 AWSTemplateFormatVersion("2010-09-09")
 Description("My CloudFormation template")
 
-Environment = Parameter({
+Environment = Parameter {
   Type: "String",
   Default: "dev"
-})
+}
 
-IsProd = Condition(Environment == "production")
+IsProd = Condition Equals(Environment, "production")
 
-MyBucket = Resource("AWS::S3::Bucket", {
+MyBucket = Resource AWS::S3::Bucket {
   BucketName: Join("-", ["my-bucket", Environment])
-}) Condition(IsProd)
+} Condition(IsProd)
 
-BucketArn = Output({
+BucketArn = Output {
   Value: MyBucket.Arn,
   Description: "Bucket ARN"
-})
+}
 ```
 
 ## Language Reference
@@ -117,11 +117,11 @@ BucketArn = Output({
 
 ### Declarations
 
-- `name = Parameter({ ... })`
-- `name = Resource("Type", { ... })`
-- `name = Output({ ... })`
-- `name = Mapping({ ... })`
-- `name = Condition(expression)`
+- `name = Parameter { ... }`
+- `name = Resource Type { ... }`
+- `name = Output { ... }`
+- `name = Mapping { ... }`
+- `name = Condition expression`
 
 ### Resource Attributes
 

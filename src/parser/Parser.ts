@@ -184,6 +184,11 @@ export class Parser {
       if (name === 'false') return new AST.LiteralNode(false);
       if (name === 'null') return new AST.LiteralNode(null);
       
+      // Check for entity declarations (Resource, Parameter, etc.)
+      if (['Resource', 'Parameter', 'Output', 'Mapping', 'Condition', 'Rule'].includes(name)) {
+        return this.parseEntityDeclaration(name);
+      }
+      
       // Use peek to avoid type narrowing issues
       if ((this.current.type as TokenType) === TokenType.LPAREN) {
         return this.parseFunctionCall(name);
@@ -193,6 +198,71 @@ export class Parser {
     }
     
     throw new Error(`Unexpected token at line ${this.current.line}: ${this.current.value}`);
+  }
+
+  private parseEntityDeclaration(name: string): AST.ASTNode {
+    if (name === 'Resource') {
+      // Parse: Resource AWS::S3::Bucket { ... } or Resource AWS::S3::Bucket
+      const type = this.parseResourceType();
+      
+      // Check if there's a properties object
+      const hasProperties = this.current.type === TokenType.LBRACE;
+      const properties = hasProperties ? this.parseObject() : new AST.ObjectNode(new Map());
+      const resource = new AST.ResourceNode(type, properties, hasProperties);
+      
+      // Parse chained attributes
+      while (this.current.type === TokenType.IDENTIFIER) {
+        const attrName = this.current.value;
+        if (['DependsOn', 'Condition', 'DeletionPolicy', 'UpdateReplacePolicy', 
+             'CreationPolicy', 'UpdatePolicy', 'Metadata', 'Version'].includes(attrName)) {
+          this.advance();
+          this.expect(TokenType.LPAREN);
+          const attrValue = this.parseExpression();
+          this.expect(TokenType.RPAREN);
+          resource.attributes.push(new AST.ResourceAttributeNode(attrName, attrValue));
+        } else {
+          break;
+        }
+      }
+      
+      return resource;
+    } else if (name === 'Parameter' || name === 'Output' || name === 'Mapping' || name === 'Rule') {
+      // Parse: Parameter { ... }
+      const obj = this.parseObject();
+      if (name === 'Parameter') return new AST.ParameterNode(obj);
+      if (name === 'Output') return new AST.OutputNode(obj);
+      if (name === 'Mapping') return new AST.MappingNode(obj);
+      return new AST.RuleNode(obj);
+    } else if (name === 'Condition') {
+      // Parse: Condition expression
+      const expr = this.parseExpression();
+      return new AST.ConditionNode(expr);
+    }
+    
+    throw new Error(`Unknown entity type: ${name}`);
+  }
+
+  private parseResourceType(): string {
+    // Parse AWS::S3::Bucket style type
+    const parts: string[] = [];
+    
+    if (this.current.type !== TokenType.IDENTIFIER) {
+      throw new Error(`Expected resource type at line ${this.current.line}`);
+    }
+    
+    parts.push(this.current.value);
+    this.advance();
+    
+    while ((this.current.type as TokenType) === TokenType.DOUBLE_COLON) {
+      this.advance();
+      if (this.current.type !== TokenType.IDENTIFIER) {
+        throw new Error(`Expected identifier after :: at line ${this.current.line}`);
+      }
+      parts.push(this.current.value);
+      this.advance();
+    }
+    
+    return parts.join('::');
   }
 
   private parseFunctionCall(name: string): AST.ASTNode {
@@ -211,41 +281,8 @@ export class Parser {
     
     this.expect(TokenType.RPAREN);
     
-    // Handle special section constructors
-    if (name === 'Resource') {
-      const type = args[0].toCloudFormation();
-      const properties = args.length > 1 ? (args[1] as AST.ObjectNode) : new AST.ObjectNode(new Map());
-      const resource = new AST.ResourceNode(type, properties, args.length > 1);
-      
-      // Parse chained attributes
-      while (this.current.type === TokenType.IDENTIFIER) {
-        const attrName = this.current.value;
-        if (['DependsOn', 'Condition', 'DeletionPolicy', 'UpdateReplacePolicy', 
-             'CreationPolicy', 'UpdatePolicy', 'Metadata', 'Version'].includes(attrName)) {
-          this.advance();
-          this.expect(TokenType.LPAREN);
-          const attrValue = this.parseExpression();
-          this.expect(TokenType.RPAREN);
-          resource.attributes.push(new AST.ResourceAttributeNode(attrName, attrValue));
-        } else {
-          break;
-        }
-      }
-      
-      return resource;
-    } else if (name === 'Parameter') {
-      return new AST.ParameterNode(args[0] as AST.ObjectNode);
-    } else if (name === 'Output') {
-      return new AST.OutputNode(args[0] as AST.ObjectNode);
-    } else if (name === 'Mapping') {
-      return new AST.MappingNode(args[0] as AST.ObjectNode);
-    } else if (name === 'Condition') {
-      return new AST.ConditionNode(args[0]);
-    } else if (name === 'Rule') {
-      return new AST.RuleNode(args[0] as AST.ObjectNode);
-    } else if (name === 'Sub') {
-      // Sub is special - just pass through as a regular function call
-      // The string argument is already a LiteralNode
+    // Special handling for Sub - preserve string format
+    if (name === 'Sub') {
       return new AST.FunctionCallNode(name, args);
     }
     

@@ -3,7 +3,7 @@ import { Compiler } from '../compiler/Compiler';
 describe('Chained member access', () => {
   it('should compile chained member access to GetAtt with dotted attribute', () => {
     const cfnscript = `
-MyOutput = Output({ Value: MyResource.Compliance.Type })
+MyOutput = Output { Value: MyResource.Compliance.Type }
     `.trim();
 
     const compiler = new Compiler();
@@ -18,7 +18,7 @@ MyOutput = Output({ Value: MyResource.Compliance.Type })
 
   it('should handle triple-chained member access', () => {
     const cfnscript = `
-MyOutput = Output({ Value: MyResource.A.B.C })
+MyOutput = Output { Value: MyResource.A.B.C }
     `.trim();
 
     const compiler = new Compiler();

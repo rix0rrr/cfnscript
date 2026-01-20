@@ -53,7 +53,13 @@ export class Lexer {
       case ']': return this.advance(), this.makeToken(TokenType.RBRACKET, ']', line, column);
       case ',': return this.advance(), this.makeToken(TokenType.COMMA, ',', line, column);
       case '.': return this.advance(), this.makeToken(TokenType.DOT, '.', line, column);
-      case ':': return this.advance(), this.makeToken(TokenType.COLON, ':', line, column);
+      case ':':
+        this.advance();
+        if (this.current === ':') {
+          this.advance();
+          return this.makeToken(TokenType.DOUBLE_COLON, '::', line, column);
+        }
+        return this.makeToken(TokenType.COLON, ':', line, column);
     }
 
     // String literals

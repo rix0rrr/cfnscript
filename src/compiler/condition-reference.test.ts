@@ -3,9 +3,9 @@ import { Compiler } from './Compiler';
 describe('Condition reference', () => {
   it('should compile condition references to { Condition: name }', () => {
     const cfnscript = `
-IsProd = Condition(Equals(Env, 'prod'))
-IsStaging = Condition(Equals(Env, 'staging'))
-IsProdOrStaging = Condition(Or(IsProd, IsStaging))
+IsProd = Condition Equals(Env, 'prod')
+IsStaging = Condition Equals(Env, 'staging')
+IsProdOrStaging = Condition Or(IsProd, IsStaging)
 `;
 
     const compiler = new Compiler();
@@ -25,9 +25,9 @@ IsProdOrStaging = Condition(Or(IsProd, IsStaging))
 
   it('should handle quoted condition names', () => {
     const cfnscript = `
-'3RouteTableCondition' = Condition(Equals(Env, 'prod'))
-'4RouteTableCondition' = Condition(Equals(Env, 'staging'))
-'2RouteTableCondition' = Condition(Or('3RouteTableCondition', '4RouteTableCondition'))
+'3RouteTableCondition' = Condition Equals(Env, 'prod')
+'4RouteTableCondition' = Condition Equals(Env, 'staging')
+'2RouteTableCondition' = Condition Or('3RouteTableCondition', '4RouteTableCondition')
 `;
 
     const compiler = new Compiler();
