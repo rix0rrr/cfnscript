@@ -36,6 +36,11 @@ export class Parser {
       return this.parseAssignment();
     }
     
+    // Allow quoted strings as assignment targets
+    if (this.current.type === TokenType.STRING) {
+      return this.parseAssignment();
+    }
+    
     throw new Error(`Unexpected token at line ${this.current.line}: ${this.current.value}`);
   }
 
@@ -66,7 +71,9 @@ export class Parser {
   }
 
   private parseAssignment(): AST.AssignmentNode {
-    const name = this.expect(TokenType.IDENTIFIER).value;
+    const name = this.current.type === TokenType.STRING 
+      ? this.expect(TokenType.STRING).value
+      : this.expect(TokenType.IDENTIFIER).value;
     this.expect(TokenType.EQUALS);
     const value = this.parseExpression();
     
