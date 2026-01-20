@@ -157,6 +157,7 @@ All CloudFormation intrinsic functions are supported:
 
 - Use variable name for `Ref`: `MyBucket` compiles to `{ "Ref": "MyBucket" }`
 - Use dot notation for `GetAtt`: `MyBucket.Arn` compiles to `{ "Fn::GetAtt": ["MyBucket", "Arn"] }`
+- Use bracket notation for multi-element `GetAtt`: `MyBucket["Compliance", "Type"]` compiles to `{ "Fn::GetAtt": ["MyBucket", "Compliance", "Type"] }`
 
 ### Condition Operators
 
@@ -166,6 +167,19 @@ Use operators instead of function calls:
 - `value1 != value2` compiles to `Fn::Not` with `Fn::Equals` (syntactic sugar for `!(value1 == value2)`)
 - `condition1 && condition2` compiles to `Fn::And`
 - `condition1 || condition2` compiles to `Fn::Or`
+
+### Resource Policies
+
+DeletionPolicy and UpdateReplacePolicy use unquoted identifiers:
+- `DeletionPolicy(Delete)` - Delete the resource when the stack is deleted
+- `DeletionPolicy(Retain)` - Retain the resource when the stack is deleted
+- `DeletionPolicy(RetainExceptOnCreate)` - Retain on update/delete, but not on create failure
+- `DeletionPolicy(Snapshot)` - Create a snapshot before deleting (for supported resources)
+- `UpdateReplacePolicy(Delete)` - Delete the old resource when replaced
+- `UpdateReplacePolicy(Retain)` - Retain the old resource when replaced
+- `UpdateReplacePolicy(Snapshot)` - Snapshot the old resource when replaced
+
+Note: `RetainExceptOnCreate` is only valid for `DeletionPolicy`, not `UpdateReplacePolicy`.
 
 ## License
 
