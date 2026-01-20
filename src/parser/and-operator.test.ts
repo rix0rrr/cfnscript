@@ -60,4 +60,26 @@ IsValid = Condition Env == "prod" && Region == "us-east-1"
       ]
     });
   });
+
+  it('should handle parentheses for grouping', () => {
+    const source = `
+IsValid = Condition A && B && (C && D)
+    `.trim();
+    
+    const compiler = new Compiler();
+    const result = compiler.compile(source);
+    
+    expect(result.Conditions!.IsValid).toEqual({
+      'Fn::And': [
+        { Ref: 'A' },
+        { Ref: 'B' },
+        {
+          'Fn::And': [
+            { Ref: 'C' },
+            { Ref: 'D' }
+          ]
+        }
+      ]
+    });
+  });
 });

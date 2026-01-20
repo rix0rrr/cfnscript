@@ -164,6 +164,14 @@ export class Parser {
       return new AST.LiteralNode(value);
     }
     
+    // Parenthesized expression
+    if (this.current.type === TokenType.LPAREN) {
+      this.advance();
+      const expr = this.parseExpression();
+      this.expect(TokenType.RPAREN);
+      return expr;
+    }
+    
     // Object literal
     if (this.current.type === TokenType.LBRACE) {
       return this.parseObject();

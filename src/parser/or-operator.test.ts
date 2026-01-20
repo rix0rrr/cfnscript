@@ -62,4 +62,26 @@ Complex = Condition IsDev && IsUS || IsProd && IsEU
       ]
     });
   });
+
+  it('should handle parentheses for grouping', () => {
+    const source = `
+IsValid = Condition A || B || (C || D)
+    `.trim();
+    
+    const compiler = new Compiler();
+    const result = compiler.compile(source);
+    
+    expect(result.Conditions!.IsValid).toEqual({
+      'Fn::Or': [
+        { Ref: 'A' },
+        { Ref: 'B' },
+        {
+          'Fn::Or': [
+            { Ref: 'C' },
+            { Ref: 'D' }
+          ]
+        }
+      ]
+    });
+  });
 });
