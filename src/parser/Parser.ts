@@ -54,20 +54,20 @@ export class Parser {
       return name === 'Description' 
         ? new AST.DescriptionNode(value)
         : new AST.AWSTemplateFormatVersionNode(value);
-    } else if (name === 'Transform') {
-      const value = this.parseExpression();
-      this.expect(TokenType.RPAREN);
-      const cfValue = value.toCloudFormation();
-      return new AST.TransformNode(cfValue);
-    } else if (name === 'Metadata' || name === 'Globals') {
-      const value = this.parseExpression() as AST.ObjectNode;
-      this.expect(TokenType.RPAREN);
-      return name === 'Metadata' 
-        ? new AST.MetadataNode(value)
-        : new AST.GlobalsNode(value);
     }
     
-    throw new Error(`Unknown section: ${name}`);
+    if (name === 'Transform') {
+      const value = this.parseExpression();
+      this.expect(TokenType.RPAREN);
+      return new AST.TransformNode(value.toCloudFormation());
+    }
+    
+    // Metadata or Globals
+    const value = this.parseExpression() as AST.ObjectNode;
+    this.expect(TokenType.RPAREN);
+    return name === 'Metadata' 
+      ? new AST.MetadataNode(value)
+      : new AST.GlobalsNode(value);
   }
 
   private parseAssignment(): AST.AssignmentNode {
@@ -229,44 +229,44 @@ export class Parser {
 
   private parseEntityDeclaration(name: string): AST.ASTNode {
     if (name === 'Resource') {
-      // Parse: Resource AWS::S3::Bucket { ... } or Resource AWS::S3::Bucket
-      const type = this.parseResourceType();
-      
-      // Check if there's a properties object
-      const hasProperties = this.current.type === TokenType.LBRACE;
-      const properties = hasProperties ? this.parseObject() : new AST.ObjectNode(new Map());
-      const resource = new AST.ResourceNode(type, properties, hasProperties);
-      
-      // Parse chained attributes
-      while (this.current.type === TokenType.IDENTIFIER) {
-        const attrName = this.current.value;
-        if (['DependsOn', 'Condition', 'DeletionPolicy', 'UpdateReplacePolicy', 
-             'CreationPolicy', 'UpdatePolicy', 'Metadata', 'Version'].includes(attrName)) {
-          this.advance();
-          this.expect(TokenType.LPAREN);
-          const attrValue = this.parseExpression();
-          this.expect(TokenType.RPAREN);
-          resource.attributes.push(new AST.ResourceAttributeNode(attrName, attrValue));
-        } else {
-          break;
-        }
-      }
-      
-      return resource;
-    } else if (name === 'Parameter' || name === 'Output' || name === 'Mapping' || name === 'Rule') {
-      // Parse: Parameter { ... }
-      const obj = this.parseObject();
-      if (name === 'Parameter') return new AST.ParameterNode(obj);
-      if (name === 'Output') return new AST.OutputNode(obj);
-      if (name === 'Mapping') return new AST.MappingNode(obj);
-      return new AST.RuleNode(obj);
-    } else if (name === 'Condition') {
-      // Parse: Condition expression
-      const expr = this.parseExpression();
-      return new AST.ConditionNode(expr);
+      return this.parseResource();
     }
     
-    throw new Error(`Unknown entity type: ${name}`);
+    if (name === 'Condition') {
+      return new AST.ConditionNode(this.parseExpression());
+    }
+    
+    // Parameter, Output, Mapping, Rule
+    const obj = this.parseObject();
+    const nodeMap: Record<string, any> = {
+      'Parameter': AST.ParameterNode,
+      'Output': AST.OutputNode,
+      'Mapping': AST.MappingNode,
+      'Rule': AST.RuleNode
+    };
+    return new nodeMap[name](obj);
+  }
+
+  private parseResource(): AST.ResourceNode {
+    const type = this.parseResourceType();
+    const hasProperties = this.current.type === TokenType.LBRACE;
+    const properties = hasProperties ? this.parseObject() : new AST.ObjectNode(new Map());
+    const resource = new AST.ResourceNode(type, properties, hasProperties);
+    
+    // Parse chained attributes
+    const validAttributes = ['DependsOn', 'Condition', 'DeletionPolicy', 'UpdateReplacePolicy', 
+                            'CreationPolicy', 'UpdatePolicy', 'Metadata', 'Version'];
+    
+    while (this.current.type === TokenType.IDENTIFIER && validAttributes.includes(this.current.value)) {
+      const attrName = this.current.value;
+      this.advance();
+      this.expect(TokenType.LPAREN);
+      const attrValue = this.parseExpression();
+      this.expect(TokenType.RPAREN);
+      resource.attributes.push(new AST.ResourceAttributeNode(attrName, attrValue));
+    }
+    
+    return resource;
   }
 
   private parseResourceType(): string {
@@ -296,11 +296,17 @@ export class Parser {
     this.expect(TokenType.LPAREN);
     
     // Disallow deprecated function syntax for operators
-    if (name === 'Equals' || name === 'Or' || name === 'And' || name === 'Not') {
-      const operator = name === 'Equals' ? '==' : name === 'Or' ? '||' : name === 'And' ? '&&' : '!';
+    const operatorMap: Record<string, string> = {
+      'Equals': '==',
+      'Or': '||',
+      'And': '&&',
+      'Not': '!'
+    };
+    
+    if (operatorMap[name]) {
       throw new Error(
         `${name}() function syntax is not supported. Use operators instead: ` +
-        `${operator} at line ${this.current.line}`
+        `${operatorMap[name]} at line ${this.current.line}`
       );
     }
     
@@ -316,13 +322,6 @@ export class Parser {
     }
     
     this.expect(TokenType.RPAREN);
-    
-    // Special handling for Sub - preserve string format
-    if (name === 'Sub') {
-      return new AST.FunctionCallNode(name, args);
-    }
-    
-    // Regular function call (intrinsic)
     return new AST.FunctionCallNode(name, args);
   }
 

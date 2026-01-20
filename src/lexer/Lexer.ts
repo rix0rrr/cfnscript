@@ -22,51 +22,22 @@ export class Lexer {
     const line = this.line;
     const column = this.column;
 
+    // Two-character operators
+    const doubleChar = this.tryDoubleChar(line, column);
+    if (doubleChar) return doubleChar;
+
     // Single character tokens
-    switch (this.current) {
-      case '=':
-        this.advance();
-        if (this.current === '=') {
-          this.advance();
-          return this.makeToken(TokenType.DOUBLE_EQUALS, '==', line, column);
-        }
-        return this.makeToken(TokenType.EQUALS, '=', line, column);
-      case '&':
-        this.advance();
-        if (this.current === '&') {
-          this.advance();
-          return this.makeToken(TokenType.DOUBLE_AMPERSAND, '&&', line, column);
-        }
-        return this.makeToken(TokenType.AMPERSAND, '&', line, column);
-      case '|':
-        this.advance();
-        if (this.current === '|') {
-          this.advance();
-          return this.makeToken(TokenType.DOUBLE_PIPE, '||', line, column);
-        }
-        return this.makeToken(TokenType.PIPE, '|', line, column);
-      case '!':
-        this.advance();
-        if ((this.current as string) === '=') {
-          this.advance();
-          return this.makeToken(TokenType.EXCLAMATION_EQUALS, '!=', line, column);
-        }
-        return this.makeToken(TokenType.EXCLAMATION, '!', line, column);
-      case '(': return this.advance(), this.makeToken(TokenType.LPAREN, '(', line, column);
-      case ')': return this.advance(), this.makeToken(TokenType.RPAREN, ')', line, column);
-      case '{': return this.advance(), this.makeToken(TokenType.LBRACE, '{', line, column);
-      case '}': return this.advance(), this.makeToken(TokenType.RBRACE, '}', line, column);
-      case '[': return this.advance(), this.makeToken(TokenType.LBRACKET, '[', line, column);
-      case ']': return this.advance(), this.makeToken(TokenType.RBRACKET, ']', line, column);
-      case ',': return this.advance(), this.makeToken(TokenType.COMMA, ',', line, column);
-      case '.': return this.advance(), this.makeToken(TokenType.DOT, '.', line, column);
-      case ':':
-        this.advance();
-        if (this.current === ':') {
-          this.advance();
-          return this.makeToken(TokenType.DOUBLE_COLON, '::', line, column);
-        }
-        return this.makeToken(TokenType.COLON, ':', line, column);
+    const singleCharTokens: Record<string, TokenType> = {
+      '(': TokenType.LPAREN, ')': TokenType.RPAREN,
+      '{': TokenType.LBRACE, '}': TokenType.RBRACE,
+      '[': TokenType.LBRACKET, ']': TokenType.RBRACKET,
+      ',': TokenType.COMMA, '.': TokenType.DOT
+    };
+    
+    if (singleCharTokens[this.current]) {
+      const char = this.current;
+      this.advance();
+      return this.makeToken(singleCharTokens[char], char, line, column);
     }
 
     // String literals
@@ -114,6 +85,29 @@ export class Lexer {
     this.current = this.source[this.pos] || '';
   }
 
+  private tryDoubleChar(line: number, column: number): Token | null {
+    const doubleCharTokens: Record<string, [string, TokenType, TokenType]> = {
+      '=': ['=', TokenType.DOUBLE_EQUALS, TokenType.EQUALS],
+      '&': ['&', TokenType.DOUBLE_AMPERSAND, TokenType.AMPERSAND],
+      '|': ['|', TokenType.DOUBLE_PIPE, TokenType.PIPE],
+      '!': ['=', TokenType.EXCLAMATION_EQUALS, TokenType.EXCLAMATION],
+      ':': [':', TokenType.DOUBLE_COLON, TokenType.COLON]
+    };
+    
+    const config = doubleCharTokens[this.current];
+    if (config) {
+      const [nextChar, doubleType, singleType] = config;
+      const firstChar = this.current;
+      this.advance();
+      if (this.current === nextChar) {
+        this.advance();
+        return this.makeToken(doubleType, firstChar + nextChar, line, column);
+      }
+      return this.makeToken(singleType, firstChar, line, column);
+    }
+    return null;
+  }
+
   private skipWhitespaceAndComments(): void {
     while (true) {
       // Skip whitespace
@@ -121,33 +115,22 @@ export class Lexer {
         this.advance();
       }
 
-      // Skip # comments
-      if (this.current === '#') {
-        let ch: string = this.current;
-        while (ch && ch !== '\n') {
-          this.advance();
-          ch = this.current;
-        }
-        if (ch === '\n') {
-          this.advance();
-        }
-        continue;
-      }
-
-      // Skip // comments
-      if (this.current === '/' && this.peek1() === '/') {
-        let ch: string = this.current;
-        while (ch && ch !== '\n') {
-          this.advance();
-          ch = this.current;
-        }
-        if (ch === '\n') {
-          this.advance();
-        }
+      // Skip comments (# or //)
+      if (this.current === '#' || (this.current === '/' && this.peek1() === '/')) {
+        this.skipLineComment();
         continue;
       }
 
       break;
+    }
+  }
+
+  private skipLineComment(): void {
+    while (this.current && this.current !== '\n') {
+      this.advance();
+    }
+    if (this.current === '\n') {
+      this.advance();
     }
   }
 
